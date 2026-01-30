@@ -20,7 +20,6 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
   
   filterCognome: string = '';
   filterSocieta: string = '';
-  filterMatricola: string = '';
 
   // Modifica utente
   editUserId: number | string = '';
@@ -33,7 +32,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
   editCompany: string = '';
   editOtherCompany: string = '';
   editShowOtherCompany: boolean = false;
-  editMatricola: string = '';
+  editDichiarazioneManleva: boolean = false;
   editUserCode: string = '';
   editNewPassword: string = '';
   editConfirmPassword: string = '';
@@ -83,17 +82,14 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
         `${user.firstName} ${user.lastName}`.toUpperCase().includes(this.filterCognome.toUpperCase());
       const societaMatch = !this.filterSocieta || 
         user.company.toUpperCase().includes(this.filterSocieta.toUpperCase());
-      const matricolaMatch = !this.filterMatricola || 
-        user.matricola.toUpperCase().includes(this.filterMatricola.toUpperCase());
       
-      return cognomeMatch && societaMatch && matricolaMatch;
+      return cognomeMatch && societaMatch;
     });
   }
 
   clearFilters() {
     this.filterCognome = '';
     this.filterSocieta = '';
-    this.filterMatricola = '';
     this.applyFilters();
   }
 
@@ -105,19 +101,21 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
     const detailEmail = document.getElementById('detailEmail');
     const detailPhone = document.getElementById('detailPhone');
     const detailUserCode = document.getElementById('detailUserCode');
-    const detailMatricola = document.getElementById('detailMatricola');
     const detailCompany = document.getElementById('detailCompany');
     const detailBirthdate = document.getElementById('detailBirthdate');
     const detailGender = document.getElementById('detailGender');
+    const detailDichiarazioneManleva = document.getElementById('detailDichiarazioneManleva');
+
+    const dichiarazioneManleva = user.dichiarazioneManleva ?? (user as any).certificatoMedico;
 
     if (detailName) detailName.textContent = `${user.firstName} ${user.lastName}`;
     if (detailEmail) detailEmail.textContent = user.email;
     if (detailPhone) detailPhone.textContent = user.phone;
     if (detailUserCode) detailUserCode.textContent = user.userCode || 'N/A';
-    if (detailMatricola) detailMatricola.textContent = user.matricola || '-';
     if (detailCompany) detailCompany.textContent = user.company;
     if (detailBirthdate) detailBirthdate.textContent = user.birthdateDisplay || user.birthdate;
     if (detailGender) detailGender.textContent = user.gender;
+    if (detailDichiarazioneManleva) detailDichiarazioneManleva.textContent = dichiarazioneManleva ? 'Sì' : 'No';
 
     const modalElement = document.getElementById('userDetailsModal');
     if (modalElement) {
@@ -151,7 +149,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
     this.editPhone = user.phone;
     this.editBirthdate = user.birthdate;
     this.editGender = user.gender;
-    this.editMatricola = user.matricola || '';
+    this.editDichiarazioneManleva = user.dichiarazioneManleva ?? (user as any).certificatoMedico ?? false;
     this.editUserCode = user.userCode || 'N/A';
     this.editNewPassword = '';
     this.editConfirmPassword = '';
@@ -183,7 +181,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
 
     // Validazione base
     if (!this.editFirstName || !this.editLastName || !this.editEmail || !this.editPhone || 
-        !this.editBirthdate || !this.editGender || !finalCompany || !this.editMatricola) {
+        !this.editBirthdate || !this.editGender || !finalCompany) {
       alert('Per favore compila tutti i campi obbligatori!');
       return;
     }
@@ -213,7 +211,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
       birthdate: this.editBirthdate,
       gender: this.editGender,
       company: finalCompany,
-      matricola: this.editMatricola
+      dichiarazioneManleva: this.editDichiarazioneManleva
     };
 
     if (this.editNewPassword) {
@@ -234,7 +232,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
 
         this.applyFilters();
 
-        let successMessage = `✓ Utente aggiornato con successo!\n\nNome: ${this.editFirstName} ${this.editLastName}\nEmail: ${this.editEmail}\nMatricola: ${this.editMatricola}\nSocietà: ${finalCompany}`;
+        let successMessage = `✓ Utente aggiornato con successo!\n\nNome: ${this.editFirstName} ${this.editLastName}\nEmail: ${this.editEmail}\nSocietà: ${finalCompany}`;
         if (this.editNewPassword) {
           successMessage += `\n\n✓ Password aggiornata con successo!`;
         }

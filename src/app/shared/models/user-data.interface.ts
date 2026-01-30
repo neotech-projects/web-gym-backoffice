@@ -13,7 +13,7 @@ export interface User {
   status: string;
   accessHistory?: AccessHistoryEntry[];
   bookingHistory?: BookingHistoryEntry[];
-  certificatoMedico?: boolean;
+  dichiarazioneManleva?: boolean;
   password?: string;
   registrationDate?: string;
 }

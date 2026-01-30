@@ -11,6 +11,7 @@
     "matricola": "MAT001",
     "userCode": "ABC123XYZ456789",
     "status": "Attivo",
+    "dichiarazioneManleva": true,
     "bookingHistory": [
       { "date": "2026-01-16", "time": "10:00", "hasAccess": true },
       { "date": "2026-01-14", "time": "18:00", "hasAccess": true },
@@ -30,6 +31,7 @@
     "matricola": "MAT002",
     "userCode": "DEF456UVW123456",
     "status": "Attivo",
+    "dichiarazioneManleva": true,
     "bookingHistory": [
       { "date": "2026-01-15", "time": "09:00", "hasAccess": true },
       { "date": "2026-01-13", "time": "16:00", "hasAccess": false },
@@ -48,6 +50,7 @@
     "matricola": "MAT003",
     "userCode": "GHI789RST012345",
     "status": "Attivo",
+    "dichiarazioneManleva": false,
     "bookingHistory": [
       { "date": "2026-01-14", "time": "07:00", "hasAccess": false },
       { "date": "2026-01-12", "time": "19:00", "hasAccess": false },
@@ -67,6 +70,7 @@
     "matricola": "MAT004",
     "userCode": "JKL012MNO345678",
     "status": "Attivo",
+    "dichiarazioneManleva": true,
     "bookingHistory": [
       { "date": "2026-01-15", "time": "14:00", "hasAccess": true },
       { "date": "2026-01-13", "time": "11:00", "hasAccess": true },
@@ -85,6 +89,7 @@
     "matricola": "MAT005",
     "userCode": "PQR345STU678901",
     "status": "Attivo",
+    "dichiarazioneManleva": true,
     "bookingHistory": [
       { "date": "2026-01-16", "time": "18:00", "hasAccess": true },
       { "date": "2026-01-14", "time": "20:00", "hasAccess": true },

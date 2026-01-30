@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DashboardService } from './dashboard.service';
 import { Subscription } from 'rxjs';
+import { CurrentPresence } from '../../shared/models/dashboard-data.interface';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,6 +16,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   bookingsCount: number = 0;
   workoutsCount: number = 0;
   currentPresencesCount: number = 0;
+  currentPresencesList: CurrentPresence[] = [];
+  selectedPresence: CurrentPresence | null = null;
   currentPresenceBadge: string = 'In tempo reale';
   currentPresenceBadgeClass: string = 'badge bg-success-subtle text-success';
   isLoading: boolean = true;
@@ -25,8 +28,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadDashboardData();
+    this.loadCurrentPresencesList();
     // Aggiorna le presenze ogni 30 secondi
-    this.intervalId = setInterval(() => this.updateCurrentPresences(), 30000);
+    this.intervalId = setInterval(() => {
+      this.updateCurrentPresences();
+      this.loadCurrentPresencesList();
+    }, 30000);
   }
 
   ngOnDestroy() {
@@ -49,8 +56,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.bookingsCount = data.weeklyBookings;
         this.workoutsCount = data.monthlyPresences;
-        this.currentPresencesCount = data.currentPresences;
-        this.updatePresenceBadge();
+        // Non impostiamo currentPresencesCount qui, viene sincronizzato dalla lista
         this.isLoading = false;
       },
       error: (error) => {
@@ -64,18 +70,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   /**
    * Aggiorna solo le presenze attuali (chiamata periodica)
+   * Nota: Non usiamo più questo metodo, il conteggio viene sempre sincronizzato dalla lista
    */
   updateCurrentPresences() {
-    const sub = this.dashboardService.getCurrentPresences().subscribe({
-      next: (count) => {
-        this.currentPresencesCount = count;
+    // Il conteggio viene sincronizzato automaticamente da loadCurrentPresencesList()
+    // Manteniamo questo metodo per compatibilità ma non fa nulla
+  }
+
+  /**
+   * Carica la lista delle presenze attuali con i nominativi
+   */
+  loadCurrentPresencesList() {
+    const sub = this.dashboardService.getCurrentPresencesList().subscribe({
+      next: (presences) => {
+        this.currentPresencesList = presences;
+        this.currentPresencesCount = presences.length;
         this.updatePresenceBadge();
       },
       error: (error) => {
-        console.error('Errore nell\'aggiornamento delle presenze:', error);
+        console.error('Errore nel caricamento della lista delle presenze:', error);
       }
     });
     this.subscriptions.add(sub);
+  }
+
+  /**
+   * Ottiene le iniziali di un nome completo
+   */
+  getInitials(fullName: string): string {
+    const parts = fullName.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    }
+    return fullName.substring(0, 2).toUpperCase();
   }
 
   /**
@@ -91,17 +118,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  viewCurrentPresences(event?: Event) {
-    if (event) {
-      event.preventDefault();
-    }
-    
-    if (this.currentPresencesCount === 0) {
-      alert('Attualmente non ci sono persone in palestra.');
-    } else {
-      alert(`Attualmente ci sono ${this.currentPresencesCount} ${this.currentPresencesCount === 1 ? 'persona' : 'persone'} in palestra.\n\nIn produzione, qui verrebbe mostrata una lista dettagliata degli utenti presenti.`);
-    }
-  }
 
   openDoor() {
     // TODO: In produzione, chiamata API
@@ -121,6 +137,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /**
+   * Apre la modale con le informazioni della prenotazione
+   */
+  openPresenceModal(presence: CurrentPresence) {
+    this.selectedPresence = presence;
+    const modalElement = document.getElementById('presenceBookingModal');
+    if (modalElement) {
+      const bootstrap = (window as any).bootstrap;
+      if (bootstrap && bootstrap.Modal) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.show();
+        } else {
+          const newModal = new bootstrap.Modal(modalElement);
+          newModal.show();
+        }
+      }
+    }
+  }
+
+  /**
+   * Chiude la modale
+   */
+  closePresenceModal() {
+    const modalElement = document.getElementById('presenceBookingModal');
+    if (modalElement) {
+      const modal = (window as any).bootstrap?.Modal?.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+    this.selectedPresence = null;
   }
 
 }

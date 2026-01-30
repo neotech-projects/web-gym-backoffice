@@ -26,7 +26,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="card-body">
-                                    <form (ngSubmit)="onSubmit()" #registerUserForm="ngForm">
+                                    <form (ngSubmit)="onSubmit()" #registerUserForm="ngForm" autocomplete="off">
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
@@ -46,7 +46,7 @@
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                                    <input type="email" class="form-control" id="email" placeholder="utente@email.com" [(ngModel)]="email" name="email" required>
+                                                    <input type="email" class="form-control" id="email" placeholder="utente@email.com" [(ngModel)]="email" name="email" autocomplete="off" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -58,13 +58,13 @@
                                         </div>
 
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="birthdate" class="form-label">Data di Nascita <span class="text-danger">*</span></label>
                                                     <input type="date" class="form-control" id="birthdate" [(ngModel)]="birthdate" name="birthdate" required>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="gender" class="form-label">Sesso <span class="text-danger">*</span></label>
                                                     <select class="form-select" id="gender" [(ngModel)]="gender" name="gender" required>
@@ -73,15 +73,6 @@
                                                         <option value="Femmina">Femmina</option>
                                                         <option value="Altro">Altro</option>
                                                     </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Certificato Medico</label>
-                                                    <div class="form-check form-switch form-switch-md mt-2" dir="ltr">
-                                                        <input type="checkbox" class="form-check-input" id="certificatoMedico" name="certificatoMedico" [(ngModel)]="certificatoMedico">
-                                                        <label class="form-check-label" for="certificatoMedico">Certificato medico presente</label>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -103,9 +94,11 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="mb-3">
-                                                    <label for="matricola" class="form-label">Matricola <span class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control" id="matricola" placeholder="Inserisci la matricola aziendale" [(ngModel)]="matricola" name="matricola" required>
-                                                    <small class="text-muted">Numero di matricola del dipendente</small>
+                                                    <label class="form-label">Dichiarazione Manleva</label>
+                                                    <div class="form-check form-switch form-switch-md mt-2" dir="ltr">
+                                                        <input type="checkbox" class="form-check-input" id="dichiarazioneManleva" name="dichiarazioneManleva" [(ngModel)]="dichiarazioneManleva">
+                                                        <label class="form-check-label" for="dichiarazioneManleva">Dichiarazione Manleva presente</label>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -124,7 +117,7 @@
                                                 <div class="mb-3">
                                                     <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
                                                     <div class="position-relative">
-                                                        <input [type]="showPassword ? 'text' : 'password'" class="form-control pe-5" id="password" placeholder="Inserisci password" [(ngModel)]="password" name="password" required>
+                                                        <input [type]="showPassword ? 'text' : 'password'" class="form-control pe-5" id="password" placeholder="Inserisci password" [(ngModel)]="password" name="password" autocomplete="new-password" required>
                                                         <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('password')">
                                                             <i [class]="showPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
                                                         </button>
@@ -136,7 +129,7 @@
                                                 <div class="mb-3">
                                                     <label for="confirmPassword" class="form-label">Conferma Password <span class="text-danger">*</span></label>
                                                     <div class="position-relative">
-                                                        <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control pe-5" id="confirmPassword" placeholder="Conferma password" [(ngModel)]="confirmPassword" name="confirmPassword" required>
+                                                        <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control pe-5" id="confirmPassword" placeholder="Conferma password" [(ngModel)]="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
                                                         <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('confirmPassword')">
                                                             <i [class]="showConfirmPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
                                                         </button>

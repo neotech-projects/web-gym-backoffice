@@ -43,13 +43,6 @@
                                                 <span class="input-group-text"><i class="ri-building-line"></i></span>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label for="filterMatricola" class="form-label small text-muted">Filtra per Matricola</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="filterMatricola" placeholder="Cerca per matricola..." [(ngModel)]="filterMatricola" (keyup)="applyFilters()" name="filterMatricola">
-                                                <span class="input-group-text"><i class="ri-id-card-line"></i></span>
-                                            </div>
-                                        </div>
                                     </div>
                                     <div class="row mt-2">
                                         <div class="col-12">
@@ -67,7 +60,6 @@
                                                     <th scope="col">Utente</th>
                                                     <th scope="col">Contatti</th>
                                                     <th scope="col">Codice Utente</th>
-                                                    <th scope="col">Matricola</th>
                                                     <th scope="col">Società</th>
                                                     <th scope="col">Data Nascita</th>
                                                     <th scope="col">Sesso</th>
@@ -96,7 +88,6 @@
                                                     <td>
                                                         <code class="bg-light px-2 py-1 rounded">{{ user.userCode || 'N/A' }}</code>
                                                     </td>
-                                                    <td>{{ user.matricola || '-' }}</td>
                                                     <td>{{ user.company }}</td>
                                                     <td>{{ user.birthdateDisplay || user.birthdate }}</td>
                                                     <td>{{ user.gender }}</td>
@@ -144,7 +135,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr *ngIf="filteredUsers.length === 0">
-                                                    <td colspan="9" class="text-center py-4">
+                                                    <td colspan="8" class="text-center py-4">
                                                         <i class="ri-user-search-line fs-20 d-block mb-2"></i>
                                                         Nessun utente trovato
                                                     </td>
@@ -184,10 +175,6 @@
                             <p class="text-muted"><code id="detailUserCode" class="bg-light px-2 py-1 rounded">-</code></p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Matricola</label>
-                            <p class="text-muted" id="detailMatricola">-</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Società</label>
                             <p class="text-muted" id="detailCompany">-</p>
                         </div>
@@ -198,6 +185,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Sesso</label>
                             <p class="text-muted" id="detailGender">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Dichiarazione Manleva</label>
+                            <p class="text-muted" id="detailDichiarazioneManleva">-</p>
                         </div>
                     </div>
                 </div>
@@ -313,13 +304,13 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="editBirthdate" class="form-label">Data di Nascita <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="editBirthdate" [(ngModel)]="editBirthdate" name="editBirthdate" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="editGender" class="form-label">Sesso <span class="text-danger">*</span></label>
                                     <select class="form-select" id="editGender" [(ngModel)]="editGender" name="editGender" required>
@@ -330,7 +321,10 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="editCompany" class="form-label">Società <span class="text-danger">*</span></label>
                                     <select class="form-select" id="editCompany" [(ngModel)]="editCompany" (change)="onEditCompanyChange()" name="editCompany" required>
@@ -342,6 +336,15 @@
                                         <option value="Digital Services">Digital Services</option>
                                         <option value="Altra">Altra (specifica sotto)</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Dichiarazione Manleva</label>
+                                    <div class="form-check form-switch form-switch-md mt-2" dir="ltr">
+                                        <input type="checkbox" class="form-check-input" id="editDichiarazioneManleva" name="editDichiarazioneManleva" [(ngModel)]="editDichiarazioneManleva">
+                                        <label class="form-check-label" for="editDichiarazioneManleva">Dichiarazione Manleva presente</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -356,13 +359,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="editMatricola" class="form-label">Matricola <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="editMatricola" placeholder="Inserisci la matricola aziendale" [(ngModel)]="editMatricola" name="editMatricola" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label class="form-label">Codice Utente</label>
                                     <input type="text" class="form-control" id="editUserCode" [(ngModel)]="editUserCode" name="editUserCode" readonly style="background-color: #f8f9fa;">

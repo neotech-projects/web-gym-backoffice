@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { DashboardResponse, DashboardStats } from '../../shared/models/dashboard-data.interface';
+import { DashboardResponse, DashboardStats, CurrentPresencesResponse, CurrentPresence } from '../../shared/models/dashboard-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -134,6 +134,114 @@ export class DashboardService {
             map(stats => stats.currentPresences)
           )
         );
+      })
+    );
+  }
+
+  /**
+   * Recupera la lista delle presenze attuali con i nominativi
+   */
+  getCurrentPresencesList(): Observable<CurrentPresence[]> {
+    // Se il server non è disponibile, usa direttamente il mock
+    if (!this.isServerAvailable()) {
+      return this.getMockPresencesList();
+    }
+
+    return this.http.get<CurrentPresencesResponse>(`${this.API_URL}/current-presences-list`).pipe(
+      map(response => {
+        this.serverAvailable = true;
+        return response.presences || [];
+      }),
+      catchError((error: HttpErrorResponse) => {
+        return this.handleConnectionError(error, () => this.getMockPresencesList());
+      })
+    );
+  }
+
+  /**
+   * Recupera la lista delle presenze dal mock locale
+   */
+  private getMockPresencesList(): Observable<CurrentPresence[]> {
+    // Carica gli utenti e le prenotazioni dal mock
+    return this.http.get<any[]>('/assets/mock/users.json').pipe(
+      map(users => {
+        // Prendi un numero casuale di utenti (0-5) come presenze
+        const count = Math.floor(Math.random() * 6);
+        const shuffled = [...users].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count).map((user) => {
+          const fullName = `${user.firstName} ${user.lastName}`;
+          // Genera dati casuali per la prenotazione
+          const startHour = Math.floor(Math.random() * 8) + 9; // 9-16
+          const startMinute = Math.random() > 0.5 ? 0 : 30;
+          const duration = Math.random() > 0.5 ? 60 : 90; // 1h o 1h30
+          const endHour = startHour + Math.floor(duration / 60);
+          const endMinute = startMinute + (duration % 60);
+          
+          const startTime = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+          const endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+          const durationStr = duration === 60 ? '1h' : '1h 30m';
+          
+          // Note casuali
+          const notes = [
+            'Allenamento cardio',
+            'Sessione di forza',
+            'Allenamento completo',
+            'Cardio e stretching',
+            'Sessione personalizzata'
+          ];
+          const note = notes[Math.floor(Math.random() * notes.length)];
+          
+          return {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            fullName: fullName,
+            company: user.company || 'N/A',
+            bookingNote: note,
+            bookingStartTime: startTime,
+            bookingEndTime: endTime,
+            bookingDuration: durationStr
+          };
+        });
+      }),
+      catchError(error => {
+        console.error('Errore nel caricamento del mock presenze:', error);
+        // Fallback a dati di default
+        return of([
+          { 
+            id: 1, 
+            firstName: 'Mario', 
+            lastName: 'Rossi', 
+            fullName: 'Mario Rossi',
+            company: 'Acme Corporation',
+            bookingNote: 'Allenamento cardio',
+            bookingStartTime: '10:00',
+            bookingEndTime: '11:00',
+            bookingDuration: '1h'
+          },
+          { 
+            id: 2, 
+            firstName: 'Laura', 
+            lastName: 'Bianchi', 
+            fullName: 'Laura Bianchi',
+            company: 'TechSolutions S.r.l.',
+            bookingNote: 'Sessione di forza',
+            bookingStartTime: '14:00',
+            bookingEndTime: '15:30',
+            bookingDuration: '1h 30m'
+          },
+          { 
+            id: 3, 
+            firstName: 'Giovanni', 
+            lastName: 'Verdi', 
+            fullName: 'Giovanni Verdi',
+            company: 'Global Industries',
+            bookingNote: 'Allenamento completo',
+            bookingStartTime: '09:00',
+            bookingEndTime: '10:00',
+            bookingDuration: '1h'
+          }
+        ]);
       })
     );
   }

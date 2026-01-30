@@ -7,6 +7,8 @@
 
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
@@ -58,6 +60,114 @@ app.get('/api/dashboard/stats/current-presences', (req, res) => {
   setTimeout(() => {
     res.json(response);
   }, 50);
+});
+
+// Endpoint per la lista delle presenze attuali con i nominativi
+app.get('/api/dashboard/stats/current-presences-list', (req, res) => {
+  console.log(`[${new Date().toISOString()}] GET /api/dashboard/stats/current-presences-list`);
+  
+  try {
+    // Carica gli utenti dal file JSON
+    const usersPath = path.join(__dirname, 'src', 'assets', 'mock', 'users.json');
+    const usersData = fs.readFileSync(usersPath, 'utf8');
+    const users = JSON.parse(usersData);
+    
+    // Genera un numero casuale di presenze (0-5)
+    const count = getRandomCurrentPresences();
+    
+    // Mescola gli utenti e prendi i primi 'count'
+    const shuffled = [...users].sort(() => 0.5 - Math.random());
+    const presences = shuffled.slice(0, count).map(user => {
+      // Genera dati casuali per la prenotazione
+      const startHour = Math.floor(Math.random() * 8) + 9; // 9-16
+      const startMinute = Math.random() > 0.5 ? 0 : 30;
+      const duration = Math.random() > 0.5 ? 60 : 90; // 1h o 1h30
+      const endHour = startHour + Math.floor(duration / 60);
+      const endMinute = startMinute + (duration % 60);
+      
+      const startTime = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+      const endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+      const durationStr = duration === 60 ? '1h' : '1h 30m';
+      
+      // Note casuali
+      const notes = [
+        'Allenamento cardio',
+        'Sessione di forza',
+        'Allenamento completo',
+        'Cardio e stretching',
+        'Sessione personalizzata'
+      ];
+      const note = notes[Math.floor(Math.random() * notes.length)];
+      
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        fullName: `${user.firstName} ${user.lastName}`,
+        company: user.company || 'N/A',
+        bookingNote: note,
+        bookingStartTime: startTime,
+        bookingEndTime: endTime,
+        bookingDuration: durationStr
+      };
+    });
+    
+    const response = {
+      success: true,
+      currentPresences: count,
+      presences: presences
+    };
+    
+    setTimeout(() => {
+      res.json(response);
+    }, 50);
+  } catch (error) {
+    console.error('Errore nel caricamento delle presenze:', error);
+    // Fallback a dati di default
+    const response = {
+      success: true,
+      currentPresences: 3,
+      presences: [
+        { 
+          id: 1, 
+          firstName: 'Mario', 
+          lastName: 'Rossi', 
+          fullName: 'Mario Rossi',
+          company: 'Acme Corporation',
+          bookingNote: 'Allenamento cardio',
+          bookingStartTime: '10:00',
+          bookingEndTime: '11:00',
+          bookingDuration: '1h'
+        },
+        { 
+          id: 2, 
+          firstName: 'Laura', 
+          lastName: 'Bianchi', 
+          fullName: 'Laura Bianchi',
+          company: 'TechSolutions S.r.l.',
+          bookingNote: 'Sessione di forza',
+          bookingStartTime: '14:00',
+          bookingEndTime: '15:30',
+          bookingDuration: '1h 30m'
+        },
+        { 
+          id: 3, 
+          firstName: 'Giovanni', 
+          lastName: 'Verdi', 
+          fullName: 'Giovanni Verdi',
+          company: 'Global Industries',
+          bookingNote: 'Allenamento completo',
+          bookingStartTime: '09:00',
+          bookingEndTime: '10:00',
+          bookingDuration: '1h'
+        }
+      ]
+    };
+    
+    setTimeout(() => {
+      res.json(response);
+    }, 50);
+  }
 });
 
 // Funzione helper per formattare le date

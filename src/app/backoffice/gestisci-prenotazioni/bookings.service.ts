@@ -206,9 +206,67 @@ export class BookingsService {
 
   /**
    * Recupera le prenotazioni dal mock locale
+   * Aggiorna le date statiche con date dinamiche relative a oggi
    */
   private getMockBookings(): Observable<{ bookings: Booking[]; allBookings: Booking[] }> {
     return this.http.get<{ bookings: Booking[]; allBookings: Booking[] }>(this.MOCK_URL).pipe(
+      map(data => {
+        // Calcola date dinamiche: oggi, domani, dopodomani
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const dayAfter = new Date(today);
+        dayAfter.setDate(today.getDate() + 2);
+        
+        const formatDateISO = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        
+        // Mappa delle date originali alle nuove date dinamiche
+        const dateMap: { [key: string]: string } = {
+          '2025-12-18': formatDateISO(tomorrow),
+          '2025-12-19': formatDateISO(dayAfter),
+          '2025-12-20': formatDateISO(new Date(dayAfter.getTime() + 24 * 60 * 60 * 1000))
+        };
+        
+        // Aggiorna le date nelle prenotazioni
+        const updatedBookings = data.bookings.map(booking => {
+          if (booking.start) {
+            const originalDate = booking.start.split('T')[0];
+            const newDate = dateMap[originalDate] || originalDate;
+            const time = booking.start.split('T')[1];
+            return {
+              ...booking,
+              start: `${newDate}T${time}`,
+              end: booking.end ? `${newDate}T${booking.end.split('T')[1]}` : booking.end
+            };
+          }
+          return booking;
+        });
+        
+        // Aggiorna le date in allBookings
+        const updatedAllBookings = data.allBookings.map(booking => {
+          if (booking.start) {
+            const originalDate = booking.start.split('T')[0];
+            const newDate = dateMap[originalDate] || originalDate;
+            const time = booking.start.split('T')[1];
+            return {
+              ...booking,
+              start: `${newDate}T${time}`,
+              end: booking.end ? `${newDate}T${booking.end.split('T')[1]}` : booking.end
+            };
+          }
+          return booking;
+        });
+        
+        return {
+          bookings: updatedBookings,
+          allBookings: updatedAllBookings
+        };
+      }),
       catchError(error => {
         console.error('Errore nel caricamento del mock prenotazioni:', error);
         // Fallback a dati di default vuoti

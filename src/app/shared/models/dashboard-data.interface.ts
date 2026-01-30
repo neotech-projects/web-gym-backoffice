@@ -11,3 +11,21 @@ export interface DashboardResponse {
   message?: string;
 }
 
+export interface CurrentPresence {
+  id: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  company?: string;
+  bookingNote?: string;
+  bookingStartTime?: string;
+  bookingEndTime?: string;
+  bookingDuration?: string;
+}
+
+export interface CurrentPresencesResponse {
+  success: boolean;
+  currentPresences: number;
+  presences?: CurrentPresence[];
+}
+

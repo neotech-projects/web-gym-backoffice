@@ -88,7 +88,7 @@
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
                         <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span>{{ currentPresencesCount }}</span></h4>
-                        <a href="#" class="text-decoration-underline text-muted mb-0" (click)="viewCurrentPresences($event)">Visualizza presenze</a>
+                        <a href="#" class="text-decoration-underline text-muted mb-0" style="visibility: hidden; pointer-events: none;">Visualizza presenze</a>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
                         <span class="avatar-title bg-success-subtle rounded fs-3">
@@ -132,72 +132,24 @@
     <div class="col-xl-12">
         <div class="card">
             <div class="card-header align-items-center d-flex">
-                <h4 class="card-title mb-0 flex-grow-1">Prenotazioni della Settimana</h4>
-                <div class="flex-shrink-0">
-                    <a routerLink="/backoffice/gestisci-prenotazioni" class="btn btn-soft-info btn-sm">Vedi tutte</a>
-                </div>
+                <h4 class="card-title mb-0 flex-grow-1">Presenze Attuali</h4>
             </div>
             <div class="card-body">
-                <div class="table-responsive table-card">
-                    <table class="table table-borderless table-hover table-nowrap align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col">Utente</th>
-                                <th scope="col">Data</th>
-                                <th scope="col">Orario</th>
-                                <th scope="col">Durata</th>
-                                <th scope="col">Stato</th>
-                                <th scope="col">Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-xs me-2">
-                                            <div class="avatar-title bg-primary-subtle text-primary rounded-circle">MR</div>
-                                        </div>
-                                        <span>Mario Rossi</span>
-                                    </div>
-                                </td>
-                                <td>Domani</td>
-                                <td>10:00 - 11:00</td>
-                                <td>1h</td>
-                                <td><span class="badge bg-success-subtle text-success">Confermata</span></td>
-                                <td><button type="button" class="btn btn-sm btn-soft-danger">Annulla</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-xs me-2">
-                                            <div class="avatar-title bg-success-subtle text-success rounded-circle">LB</div>
-                                        </div>
-                                        <span>Laura Bianchi</span>
-                                    </div>
-                                </td>
-                                <td>Tra 2 giorni</td>
-                                <td>14:00 - 15:30</td>
-                                <td>1h 30m</td>
-                                <td><span class="badge bg-success-subtle text-success">Confermata</span></td>
-                                <td><button type="button" class="btn btn-sm btn-soft-danger">Annulla</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-xs me-2">
-                                            <div class="avatar-title bg-warning-subtle text-warning rounded-circle">GV</div>
-                                        </div>
-                                        <span>Giovanni Verdi</span>
-                                    </div>
-                                </td>
-                                <td>Tra 3 giorni</td>
-                                <td>09:00 - 10:00</td>
-                                <td>1h</td>
-                                <td><span class="badge bg-success-subtle text-success">Confermata</span></td>
-                                <td><button type="button" class="btn btn-sm btn-soft-danger">Annulla</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div *ngIf="currentPresencesList.length === 0" class="text-center py-4">
+                    <p class="text-muted mb-0">Nessuna presenza al momento</p>
+                </div>
+                <div *ngIf="currentPresencesList.length > 0" class="d-flex flex-wrap gap-2">
+                    <span *ngFor="let presence of currentPresencesList" 
+                          (click)="openPresenceModal(presence)"
+                          class="badge bg-primary-subtle text-primary fs-13 px-3 py-2 d-inline-flex align-items-center presence-badge-clickable" 
+                          style="font-weight: 500; line-height: 1.5; cursor: pointer;">
+                        <div class="avatar-xs me-2 d-flex align-items-center" style="flex-shrink: 0;">
+                            <div class="avatar-title bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="font-size: 0.65rem; width: 20px; height: 20px; line-height: 1;">
+                                {{ getInitials(presence.fullName) }}
+                            </div>
+                        </div>
+                        <span class="d-flex align-items-center">{{ presence.fullName }}</span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -235,6 +187,58 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Chiudi</button>
                 <a routerLink="/backoffice/gestisci-prenotazioni" class="btn btn-primary">Vai alle Prenotazioni</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Informazioni Prenotazione -->
+<div class="modal fade" id="presenceBookingModal" tabindex="-1" aria-labelledby="presenceBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary-subtle">
+                <h5 class="modal-title" id="presenceBookingModalLabel">
+                    <i class="ri-user-line me-2"></i>
+                    Informazioni Prenotazione
+                </h5>
+                <button type="button" class="btn-close" (click)="closePresenceModal()" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body" *ngIf="selectedPresence">
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-sm me-3">
+                            <div class="avatar-title bg-primary text-white rounded-circle">
+                                {{ getInitials(selectedPresence.fullName) }}
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ selectedPresence.fullName }}</h6>
+                            <small class="text-muted">{{ selectedPresence.company || 'N/A' }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        <i class="ri-time-line me-2"></i>Orario Prenotazione
+                    </label>
+                    <div class="alert alert-info mb-0">
+                        <strong>{{ selectedPresence.bookingStartTime || 'N/A' }}</strong> - 
+                        <strong>{{ selectedPresence.bookingEndTime || 'N/A' }}</strong>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        <i class="ri-timer-line me-2"></i>Durata
+                    </label>
+                    <div class="alert alert-info mb-0">
+                        <strong>{{ selectedPresence.bookingDuration || 'N/A' }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft-secondary" (click)="closePresenceModal()">Chiudi</button>
             </div>
         </div>
     </div>

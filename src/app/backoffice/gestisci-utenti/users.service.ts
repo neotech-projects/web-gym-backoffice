@@ -35,6 +35,18 @@ export class UsersService {
   }
 
   /**
+   * Normalizza un utente: migra certificatoMedico → dichiarazioneManleva per retrocompatibilità.
+   */
+  private normalizeUser(user: any): User {
+    const { certificatoMedico, ...rest } = user;
+    return {
+      ...rest,
+      dichiarazioneManleva: user.dichiarazioneManleva ?? certificatoMedico,
+      birthdateDisplay: user.birthdate ? new Date(user.birthdate).toLocaleDateString('it-IT') : user.birthdateDisplay
+    } as User;
+  }
+
+  /**
    * Gestisce gli errori di connessione in modo silenzioso quando il fallback funziona
    */
   private handleConnectionError<T>(error: HttpErrorResponse, useMock: () => Observable<T>): Observable<T> {
@@ -87,11 +99,7 @@ export class UsersService {
       map(response => {
         if (response.success && response.data) {
           this.serverAvailable = true;
-          // Formatta le date di nascita per la visualizzazione
-          return response.data.map(user => ({
-            ...user,
-            birthdateDisplay: user.birthdate ? new Date(user.birthdate).toLocaleDateString('it-IT') : undefined
-          }));
+          return response.data.map(user => this.normalizeUser(user));
         }
         throw new Error(response.message || 'Invalid response format');
       }),
@@ -112,13 +120,7 @@ export class UsersService {
    */
   private getMockUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.MOCK_URL).pipe(
-      map(users => {
-        // Formatta le date di nascita per la visualizzazione
-        return users.map(user => ({
-          ...user,
-          birthdateDisplay: user.birthdate ? new Date(user.birthdate).toLocaleDateString('it-IT') : undefined
-        }));
-      }),
+      map(users => users.map(user => this.normalizeUser(user))),
       catchError(error => {
         console.error('Errore nel caricamento del mock:', error);
         // Fallback a dati di default
@@ -140,10 +142,7 @@ export class UsersService {
       map(response => {
         if (response.success && response.data) {
           this.serverAvailable = true;
-          return {
-            ...response.data,
-            birthdateDisplay: response.data.birthdate ? new Date(response.data.birthdate).toLocaleDateString('it-IT') : undefined
-          };
+          return this.normalizeUser(response.data);
         }
         throw new Error(response.message || 'Invalid response format');
       }),
@@ -167,10 +166,7 @@ export class UsersService {
       map(response => {
         if (response.success && response.data) {
           this.serverAvailable = true;
-          return {
-            ...response.data,
-            birthdateDisplay: response.data.birthdate ? new Date(response.data.birthdate).toLocaleDateString('it-IT') : undefined
-          };
+          return this.normalizeUser(response.data);
         }
         throw new Error(response.message || 'Invalid response format');
       }),
