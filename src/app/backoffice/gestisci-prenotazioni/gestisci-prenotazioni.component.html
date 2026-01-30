@@ -1,0 +1,221 @@
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Gestisci Prenotazioni</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Gestisci Prenotazioni</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-xl-3">
+        <div class="card">
+            <div class="card-body bg-success-subtle">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <i class="ri-calendar-check-line text-success display-6"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="fs-16">Prenota!</h6>
+                        <p class="text-muted mb-0">Seleziona data e ora nel calendario. La palestra può ospitare massimo 5 persone contemporaneamente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Legenda</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="fs-14 mb-2">Disponibilità Palestra:</h6>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="me-2" style="width: 30px; height: 20px; background-color: #0ab39c; display: inline-block; border-radius: 3px;"></span>
+                        <span>Disponibile</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="me-2" style="width: 30px; height: 20px; background-color: #f7b84b; display: inline-block; border-radius: 3px;"></span>
+                        <span>Parzialmente Occupato</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2" style="width: 30px; height: 20px; background-color: #f06548; display: inline-block; border-radius: 3px;"></span>
+                        <span>Occupato</span>
+                    </div>
+                </div>
+                <hr class="my-3">
+                <div>
+                    <h6 class="fs-14 mb-2">Prenotazioni:</h6>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2" style="width: 30px; height: 20px; background-color: #405189; display: inline-block; border-radius: 3px;"></span>
+                        <span>Prenotazioni Utenti</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-9">
+        <div class="card card-h-100">
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Visualizza Prenotazioni del Giorno -->
+<div class="modal fade" id="viewDayBookingsModal" tabindex="-1" aria-labelledby="viewDayBookingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary-subtle">
+                <h5 class="modal-title" id="viewDayBookingsModalLabel">Prenotazioni per il <span id="viewDayBookingsDate"></span></h5>
+                <button type="button" class="btn-close" (click)="closeModal('viewDayBookingsModal')" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="ri-information-line me-2"></i>
+                    Visualizza tutte le prenotazioni per questo giorno. Clicca su "Aggiungi Prenotazione" se un utente ha bisogno di assistenza.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Orario</th>
+                                <th scope="col">Utenti Prenotati</th>
+                                <th scope="col">Occupazione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viewDayBookingsTableBody">
+                            <!-- Le prenotazioni verranno inserite qui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" (click)="openCreateBookingModal()">
+                    <i class="ri-add-line me-1"></i> Aggiungi Prenotazione
+                </button>
+                <button type="button" class="btn btn-soft-secondary" (click)="closeModal('viewDayBookingsModal')">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Visualizza Dettagli Prenotazione -->
+<div class="modal fade" id="viewBookingModal" tabindex="-1" aria-labelledby="viewBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary-subtle">
+                <h5 class="modal-title" id="viewBookingModalLabel">Dettagli Prenotazione</h5>
+                <button type="button" class="btn-close" (click)="closeModal('viewBookingModal')" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Data</label>
+                    <input type="date" class="form-control" id="viewBookingDate" disabled>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Ora Inizio</label>
+                        <input type="time" class="form-control" id="viewBookingStartTime" disabled>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Ora Fine</label>
+                        <input type="time" class="form-control" id="viewBookingEndTime" disabled>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Utente</label>
+                    <input type="text" class="form-control" id="viewBookingUser" disabled>
+                </div>
+                <div class="alert alert-info" role="alert">
+                    <i class="ri-information-line me-2"></i>
+                    <strong>Durata:</strong> <span id="viewDuration"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft-secondary" (click)="closeModal('viewBookingModal')">Chiudi</button>
+                <button type="button" class="btn btn-danger" (click)="deleteCurrentBooking()">
+                    <i class="ri-delete-bin-line me-1"></i> Cancella Prenotazione
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crea Prenotazione -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success-subtle">
+                <h5 class="modal-title" id="bookingModalLabel">Crea Prenotazione per Utente</h5>
+                <button type="button" class="btn-close" (click)="closeModal('bookingModal')" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="ri-information-line me-2"></i>
+                    Stai creando una prenotazione per conto di un utente che non è riuscito a prenotare autonomamente.
+                </div>
+                
+                <form id="bookingForm">
+                    <div class="mb-3">
+                        <label for="bookingUser" class="form-label">Seleziona Utente <span class="text-danger">*</span></label>
+                        <select class="form-select" id="bookingUser" required>
+                            <option value="">Seleziona un utente</option>
+                            <option value="1">Mario Rossi - Acme Corporation</option>
+                            <option value="2">Laura Bianchi - TechSolutions S.r.l.</option>
+                            <option value="3">Giovanni Verdi - Global Industries</option>
+                            <option value="4">Anna Ferrari - Innovation Labs</option>
+                            <option value="5">Paolo Neri - Digital Services</option>
+                            <option value="6">Maria Russo - Acme Corporation</option>
+                            <option value="7">Luca Colombo - TechSolutions S.r.l.</option>
+                            <option value="8">Giulia Esposito - Global Industries</option>
+                        </select>
+                        <small class="text-muted">Prenotazione per conto dell'utente selezionato</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="bookingDate" class="form-label">Data <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="bookingDate" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="bookingStartTime" class="form-label">Ora Inizio <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="bookingStartTime" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="bookingEndTime" class="form-label">Ora Fine <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="bookingEndTime" required>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="ri-information-line me-2"></i>
+                        <strong>Nota:</strong> La prenotazione ha una durata minima di 30 minuti e massima di 2 ore.
+                    </div>
+                    <div id="availabilityInfo" class="alert" role="alert" style="display: none;">
+                        <i class="ri-group-line me-2"></i>
+                        <strong>Disponibilità attuale:</strong> <span id="availabilityText"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft-secondary" (click)="closeModal('bookingModal')">Annulla</button>
+                <button type="button" class="btn btn-success" (click)="confirmBooking()">Conferma Prenotazione</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--start back-to-top-->
+<button (click)="scrollToTop()" class="btn btn-danger btn-icon" id="back-to-top">
+    <i class="ri-arrow-up-line"></i>
+</button>
+<!--end back-to-top-->

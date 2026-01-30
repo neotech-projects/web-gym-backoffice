@@ -1,0 +1,73 @@
+/* SOLO per vista settimanale/giornaliera - background più opachi */
+.fc-timegrid .fc-bg-event {
+    opacity: 0.35 !important;
+    z-index: 0 !important;
+}
+
+/* SOLO per vista settimanale/giornaliera - prenotazioni trasparenti */
+.fc-timegrid .fc-event {
+    font-size: 0.85em;
+    z-index: 3 !important;
+    opacity: 0.5 !important;
+    border-width: 3px !important;
+    border-style: solid !important;
+    font-weight: 600 !important;
+}
+
+/* Migliora la leggibilità del testo nelle viste settimanale/giornaliera */
+.fc-timegrid .fc-event-title {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Rendi più opaco il grigio del giorno corrente nella vista settimanale/giornaliera */
+.fc-timegrid .fc-day-today {
+    background-color: rgba(240, 242, 245, 0.3) !important;
+}
+
+/* Vista mensile - mantieni stile normale */
+.fc-daygrid .fc-event {
+    font-size: 0.85em;
+    opacity: 1 !important;
+}
+
+/* Nascondi il link "+X more" nella vista mensile */
+.fc-daygrid .fc-more-link {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Nascondi il link "+X more" in tutte le viste */
+.fc-more-link {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+/* Nascondi anche eventuali testi "+X more" */
+.fc-daygrid-more-link {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Vista mensile - un solo evento per giorno */
+.fc-daygrid-day-events {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Vista settimanale/giornaliera - un solo evento per slot */
+.fc-timegrid-event {
+    cursor: pointer;
+}
+

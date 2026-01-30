@@ -1,0 +1,165 @@
+<!-- start page title -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0">Registra Nuovo Utente</h4>
+
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Dashboard</a></li>
+                                        <li class="breadcrumb-item"><a routerLink="/backoffice/gestisci-utenti">Gestione Iscritti</a></li>
+                                        <li class="breadcrumb-item active">Registra Utente</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end page title -->
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-header align-items-center d-flex bg-success-subtle">
+                                    <h4 class="card-title mb-0 flex-grow-1">
+                                        <i class="ri-user-add-line me-2"></i>Registra Utente
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-body">
+                                    <form (ngSubmit)="onSubmit()" #registerUserForm="ngForm">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="firstName" class="form-label">Nome <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="firstName" placeholder="Inserisci il nome" [(ngModel)]="firstName" name="firstName" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="lastName" class="form-label">Cognome <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="lastName" placeholder="Inserisci il cognome" [(ngModel)]="lastName" name="lastName" required>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                                    <input type="email" class="form-control" id="email" placeholder="utente@email.com" [(ngModel)]="email" name="email" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phone" class="form-label">Telefono <span class="text-danger">*</span></label>
+                                                    <input type="tel" class="form-control" id="phone" placeholder="+39 333 123 4567" [(ngModel)]="phone" name="phone" required>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="birthdate" class="form-label">Data di Nascita <span class="text-danger">*</span></label>
+                                                    <input type="date" class="form-control" id="birthdate" [(ngModel)]="birthdate" name="birthdate" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="gender" class="form-label">Sesso <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="gender" [(ngModel)]="gender" name="gender" required>
+                                                        <option value="">Seleziona</option>
+                                                        <option value="Maschio">Maschio</option>
+                                                        <option value="Femmina">Femmina</option>
+                                                        <option value="Altro">Altro</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Certificato Medico</label>
+                                                    <div class="form-check form-switch form-switch-md mt-2" dir="ltr">
+                                                        <input type="checkbox" class="form-check-input" id="certificatoMedico" name="certificatoMedico" [(ngModel)]="certificatoMedico">
+                                                        <label class="form-check-label" for="certificatoMedico">Certificato medico presente</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="company" class="form-label">Società <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="company" [(ngModel)]="company" (change)="onCompanyChange()" name="company" required>
+                                                        <option value="">Seleziona società</option>
+                                                        <option value="Acme Corporation">Acme Corporation</option>
+                                                        <option value="TechSolutions S.r.l.">TechSolutions S.r.l.</option>
+                                                        <option value="Global Industries">Global Industries</option>
+                                                        <option value="Innovation Labs">Innovation Labs</option>
+                                                        <option value="Digital Services">Digital Services</option>
+                                                        <option value="Altra">Altra (specifica sotto)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="matricola" class="form-label">Matricola <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="matricola" placeholder="Inserisci la matricola aziendale" [(ngModel)]="matricola" name="matricola" required>
+                                                    <small class="text-muted">Numero di matricola del dipendente</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" *ngIf="showOtherCompany">
+                                            <div class="col-md-12">
+                                                <div class="mb-3">
+                                                    <label for="otherCompany" class="form-label">Specifica Società</label>
+                                                    <input type="text" class="form-control" id="otherCompany" placeholder="Inserisci il nome della società" [(ngModel)]="otherCompany" name="otherCompany" required>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                                    <div class="position-relative">
+                                                        <input [type]="showPassword ? 'text' : 'password'" class="form-control pe-5" id="password" placeholder="Inserisci password" [(ngModel)]="password" name="password" required>
+                                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('password')">
+                                                            <i [class]="showPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-muted">Min. 8 caratteri, una maiuscola, un numero</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="confirmPassword" class="form-label">Conferma Password <span class="text-danger">*</span></label>
+                                                    <div class="position-relative">
+                                                        <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control pe-5" id="confirmPassword" placeholder="Conferma password" [(ngModel)]="confirmPassword" name="confirmPassword" required>
+                                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('confirmPassword')">
+                                                            <i [class]="showConfirmPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="text-end">
+                                                    <button type="button" class="btn btn-soft-secondary me-2" (click)="resetForm()">
+                                                        <i class="ri-refresh-line me-1"></i> Reset Form
+                                                    </button>
+                                                    <button type="button" class="btn btn-soft-secondary me-2" (click)="resetForm()">Annulla</button>
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="ri-user-add-line me-1"></i> Registra Utente
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>

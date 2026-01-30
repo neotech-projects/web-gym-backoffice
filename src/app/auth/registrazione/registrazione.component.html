@@ -1,0 +1,191 @@
+<div class="auth-page-wrapper pt-5">
+        <!-- auth page bg -->
+        <div class="auth-one-bg-position auth-one-bg" id="auth-particles" style="background-image: url('assets/images/palestra-login-bg.avif'); background-position: center; background-size: cover;">
+            <div class="bg-overlay" style="background: linear-gradient(to bottom, rgba(31, 44, 62, 0.85), rgba(31, 44, 62, 0.75)); opacity: 0.9;"></div>
+
+            <div class="shape">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1440 120">
+                    <path d="M 0,36 C 144,53.6 432,123.2 720,124 C 1008,124.8 1296,56.8 1440,40L1440 140L0 140z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- auth page content -->
+        <div class="auth-page-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center mt-sm-5 mb-4 text-white-50">
+                            <div>
+                                <a routerLink="/backoffice/dashboard" class="d-inline-block auth-logo">
+                                    <img src="assets/images/logo-investire-bianco-removebg-preview.png" alt="" height="20">
+                                </a>
+                            </div>
+                            <p class="mt-3 fs-16 fw-semibold">La Tua Palestra</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- end row -->
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6 col-xl-5">
+                        <div class="card mt-4">
+
+                            <div class="card-body p-4">
+                                <div class="text-center mt-2">
+                                    <h5 class="text-primary">Crea il tuo account</h5>
+                                    <p class="text-muted">Iscriviti per accedere a tutti i servizi della palestra</p>
+                                </div>
+                                <div class="p-2 mt-4">
+                                    <form class="needs-validation" >
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="nome" placeholder="Inserisci nome" required>
+                                                    <div class="invalid-feedback">
+                                                        Inserisci il nome
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="cognome" class="form-label">Cognome <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="cognome" placeholder="Inserisci cognome" required>
+                                                    <div class="invalid-feedback">
+                                                        Inserisci il cognome
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="username" placeholder="Scegli un username" pattern="[a-zA-Z0-9_]{3,20}" required>
+                                            <div class="invalid-feedback">
+                                                L'username deve contenere tra 3 e 20 caratteri (lettere, numeri e underscore)
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="useremail" class="form-label">Email <span class="text-danger">*</span></label>
+                                            <input type="email" class="form-control" id="useremail" placeholder="Inserisci email" required>
+                                            <div class="invalid-feedback">
+                                                Inserisci un'email valida
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="societa" class="form-label">Società <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="societa" required>
+                                                <option value="">Seleziona la tua società</option>
+                                                <option value="societa1">Società A</option>
+                                                <option value="societa2">Società B</option>
+                                                <option value="societa3">Società C</option>
+                                                <option value="societa4">Società D</option>
+                                                <option value="societa5">Società E</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                Seleziona la tua società
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label" for="password-input">Password <span class="text-danger">*</span></label>
+                                            <div class="position-relative auth-pass-inputgroup">
+                                                <input type="password" class="form-control pe-5 password-input" onpaste="return false" placeholder="Crea una password" id="password-input" aria-describedby="passwordInput" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" required>
+                                                <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-addon"><i class="ri-eye-fill align-middle"></i></button>
+                                                <div class="invalid-feedback">
+                                                    La password deve contenere almeno 8 caratteri, una maiuscola, una minuscola e un numero
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label" for="password-confirm">Conferma Password <span class="text-danger">*</span></label>
+                                            <div class="position-relative auth-pass-inputgroup">
+                                                <input type="password" class="form-control pe-5 password-input" placeholder="Conferma la password" id="password-confirm" required>
+                                                <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-confirm-addon"><i class="ri-eye-fill align-middle"></i></button>
+                                                <div class="invalid-feedback">
+                                                    Le password non corrispondono
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="" id="auth-terms-check" required>
+                                                <label class="form-check-label" for="auth-terms-check">
+                                                    Accetto i <a href="#" class="text-primary text-decoration-underline fst-normal fw-semibold">Termini e Condizioni</a> e l'<a href="#" class="text-primary text-decoration-underline fst-normal fw-semibold">Informativa sulla Privacy</a>
+                                                </label>
+                                                <div class="invalid-feedback">
+                                                    Devi accettare i termini e condizioni
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="password-contain" class="p-3 bg-light-subtle mb-2 rounded">
+                                            <h5 class="fs-13">La password deve contenere:</h5>
+                                            <p id="pass-length" class="invalid fs-13 mb-2">Almeno <b>8 caratteri</b></p>
+                                            <p id="pass-lower" class="invalid fs-13 mb-2">Almeno una <b>lettera minuscola</b> (a-z)</p>
+                                            <p id="pass-upper" class="invalid fs-13 mb-2">Almeno una <b>lettera maiuscola</b> (A-Z)</p>
+                                            <p id="pass-number" class="invalid fs-13 mb-0">Almeno un <b>numero</b> (0-9)</p>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <button class="btn btn-success w-100" type="submit">Registrati</button>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                            <!-- end card body -->
+                        </div>
+                        <!-- end card -->
+
+                        <div class="mt-4 text-center">
+                            <p class="mb-0">Hai già un account? <a routerLink="/auth/login" class="fw-bold text-primary text-decoration-underline"> Accedi</a> </p>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- end row -->
+            </div>
+            <!-- end container -->
+        </div>
+        <!-- end auth page content -->
+
+        <!-- footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center">
+                            <p class="mb-0 text-muted">&copy; {{ currentYear }} Palestra</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- end Footer -->
+    </div>
+    <!-- end auth-page-wrapper -->
+
+    <!-- JAVASCRIPT -->
+    
+    
+    
+    
+    
+    
+
+    <!-- particles js -->
+    
+    <!-- particles app js -->
+    
+    <!-- validation init -->
+    
+    <!-- password create init -->
+    
+    <!-- password-addon init -->

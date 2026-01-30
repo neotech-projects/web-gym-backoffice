@@ -1,0 +1,408 @@
+<!-- start page title -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0">Visualizza Utenti Registrati</h4>
+
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Dashboard</a></li>
+                                        <li class="breadcrumb-item"><a href="#">Gestione Iscritti</a></li>
+                                        <li class="breadcrumb-item active">Visualizza Utenti</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end page title -->
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-header align-items-center d-flex flex-wrap">
+                                    <h4 class="card-title mb-0 flex-grow-1">Utenti Registrati</h4>
+                                    <div class="flex-shrink-0 d-flex gap-2">
+                                        <a routerLink="/backoffice/registra-utente" class="btn btn-success btn-sm">
+                                            <i class="ri-user-add-line me-1"></i> Nuovo Utente
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="card-body border-bottom">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="filterCognome" class="form-label small text-muted">Filtra per Cognome</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="filterCognome" placeholder="Cerca per cognome..." [(ngModel)]="filterCognome" (keyup)="applyFilters()" name="filterCognome">
+                                                <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="filterSocieta" class="form-label small text-muted">Filtra per Società</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="filterSocieta" placeholder="Cerca per società..." [(ngModel)]="filterSocieta" (keyup)="applyFilters()" name="filterSocieta">
+                                                <span class="input-group-text"><i class="ri-building-line"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="filterMatricola" class="form-label small text-muted">Filtra per Matricola</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="filterMatricola" placeholder="Cerca per matricola..." [(ngModel)]="filterMatricola" (keyup)="applyFilters()" name="filterMatricola">
+                                                <span class="input-group-text"><i class="ri-id-card-line"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <button type="button" class="btn btn-soft-secondary btn-sm" (click)="clearFilters()">
+                                                <i class="ri-close-line me-1"></i> Pulisci Filtri
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-nowrap align-middle mb-0" id="usersTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col">Utente</th>
+                                                    <th scope="col">Contatti</th>
+                                                    <th scope="col">Codice Utente</th>
+                                                    <th scope="col">Matricola</th>
+                                                    <th scope="col">Società</th>
+                                                    <th scope="col">Data Nascita</th>
+                                                    <th scope="col">Sesso</th>
+                                                    <th scope="col">Stato</th>
+                                                    <th scope="col">Azioni</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr *ngFor="let user of filteredUsers">
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar-xs me-2">
+                                                                <div class="avatar-title bg-primary-subtle text-primary rounded-circle">{{ (user.firstName.charAt(0) + user.lastName.charAt(0)).toUpperCase() }}</div>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0">{{ user.firstName }} {{ user.lastName }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div>
+                                                            <small class="text-muted d-block"><i class="ri-mail-line me-1"></i>{{ user.email }}</small>
+                                                            <small class="text-muted"><i class="ri-phone-line me-1"></i>{{ user.phone }}</small>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <code class="bg-light px-2 py-1 rounded">{{ user.userCode || 'N/A' }}</code>
+                                                    </td>
+                                                    <td>{{ user.matricola || '-' }}</td>
+                                                    <td>{{ user.company }}</td>
+                                                    <td>{{ user.birthdateDisplay || user.birthdate }}</td>
+                                                    <td>{{ user.gender }}</td>
+                                                    <td>
+                                                        <span [class]="user.status === 'Attivo' ? 'badge bg-success-subtle text-success' : 'badge bg-danger-subtle text-danger'">
+                                                            {{ user.status }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <!-- Menu dropdown -->
+                                                            <div class="dropdown">
+                                                                <button class="btn btn-sm btn-soft-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="ri-more-fill"></i>
+                                                                </button>
+                                                                <ul class="dropdown-menu">
+                                                                    <li><a class="dropdown-item" href="#" (click)="editUser(user.id); $event.preventDefault()"><i class="ri-pencil-line me-2"></i>Modifica</a></li>
+                                                                    <li><a class="dropdown-item" href="#" (click)="viewUserDetails(user.id); $event.preventDefault()"><i class="ri-eye-line me-2"></i>Dettagli</a></li>
+                                                                    <li><a class="dropdown-item" href="#" (click)="viewUserHistory(user.id); $event.preventDefault()"><i class="ri-history-line me-2"></i>Storico</a></li>
+                                                                    <li><hr class="dropdown-divider"></li>
+                                                                    <li><a class="dropdown-item text-danger" href="#" (click)="deleteUser(user.id); $event.preventDefault()"><i class="ri-delete-bin-line me-2"></i>Elimina</a></li>
+                                                                </ul>
+                                                            </div>
+                                                            
+                                                            <!-- Semaforo -->
+                                                            <span *ngIf="getTrafficLightStatus(user) === 'green'" 
+                                                                  class="rounded-circle d-inline-block" 
+                                                                  style="width: 18px; height: 18px; background-color: #28a745; border: 2px solid #1e7e34; box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2); flex-shrink: 0;"
+                                                                  title="Nessun accesso saltato"
+                                                                  data-bs-toggle="tooltip">
+                                                            </span>
+                                                            <span *ngIf="getTrafficLightStatus(user) === 'orange'" 
+                                                                  class="rounded-circle d-inline-block" 
+                                                                  style="width: 18px; height: 18px; background-color: #ffc107; border: 2px solid #d39e00; box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2); flex-shrink: 0;"
+                                                                  title="Almeno un accesso saltato"
+                                                                  data-bs-toggle="tooltip">
+                                                            </span>
+                                                            <span *ngIf="getTrafficLightStatus(user) === 'red'" 
+                                                                  class="rounded-circle d-inline-block" 
+                                                                  style="width: 18px; height: 18px; background-color: #dc3545; border: 2px solid #bd2130; box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2); flex-shrink: 0;"
+                                                                  title="3 o più accessi saltati"
+                                                                  data-bs-toggle="tooltip">
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr *ngIf="filteredUsers.length === 0">
+                                                    <td colspan="9" class="text-center py-4">
+                                                        <i class="ri-user-search-line fs-20 d-block mb-2"></i>
+                                                        Nessun utente trovato
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+<!-- Modal Dettagli Utente -->
+    <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary-subtle">
+                    <h5 class="modal-title" id="userDetailsModalLabel">Dettagli Utente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Nome Completo</label>
+                            <p class="text-muted" id="detailName">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <p class="text-muted" id="detailEmail">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Telefono</label>
+                            <p class="text-muted" id="detailPhone">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Codice Utente</label>
+                            <p class="text-muted"><code id="detailUserCode" class="bg-light px-2 py-1 rounded">-</code></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Matricola</label>
+                            <p class="text-muted" id="detailMatricola">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Società</label>
+                            <p class="text-muted" id="detailCompany">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Data di Nascita</label>
+                            <p class="text-muted" id="detailBirthdate">-</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Sesso</label>
+                            <p class="text-muted" id="detailGender">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Storico Prenotazioni -->
+    <div class="modal fade" id="userHistoryModal" tabindex="-1" aria-labelledby="userHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info-subtle">
+                    <h5 class="modal-title" id="userHistoryModalLabel">
+                        <i class="ri-history-line me-2"></i>Storico Prenotazioni
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-xs me-2">
+                            <div class="avatar-title bg-info-subtle text-info rounded-circle">
+                                {{ selectedUserName ? (selectedUserName.charAt(0) + selectedUserName.split(' ').slice(-1)[0].charAt(0)).toUpperCase() : '-' }}
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ selectedUserName || 'Utente' }}</h6>
+                            <small class="text-muted">Storico prenotazioni e accessi</small>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0" *ngIf="selectedUserHistory.length > 0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Data</th>
+                                    <th scope="col">Ora</th>
+                                    <th scope="col">Accesso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let booking of selectedUserHistory">
+                                    <td>{{ booking.date }}</td>
+                                    <td>{{ booking.time }}</td>
+                                    <td>
+                                        <span *ngIf="booking.hasAccess" class="badge bg-success-subtle text-success">
+                                            <i class="ri-check-line me-1"></i>Effettuato
+                                        </span>
+                                        <span *ngIf="!booking.hasAccess" class="badge bg-danger-subtle text-danger">
+                                            <i class="ri-close-line me-1"></i>Non effettuato
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="text-center py-4" *ngIf="selectedUserHistory.length === 0">
+                            <i class="ri-calendar-line fs-20 d-block mb-2"></i>
+                            Nessuna prenotazione registrata per questo utente
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Modifica Utente -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning-subtle">
+                    <h5 class="modal-title" id="editUserModalLabel">
+                        <i class="ri-pencil-line me-2"></i>Modifica Utente
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" [value]="editUserId">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editFirstName" class="form-label">Nome <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editFirstName" placeholder="Inserisci il nome" [(ngModel)]="editFirstName" name="editFirstName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editLastName" class="form-label">Cognome <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editLastName" placeholder="Inserisci il cognome" [(ngModel)]="editLastName" name="editLastName" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="editEmail" placeholder="utente@email.com" [(ngModel)]="editEmail" name="editEmail" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editPhone" class="form-label">Telefono <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="editPhone" placeholder="+39 333 123 4567" [(ngModel)]="editPhone" name="editPhone" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editBirthdate" class="form-label">Data di Nascita <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="editBirthdate" [(ngModel)]="editBirthdate" name="editBirthdate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editGender" class="form-label">Sesso <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="editGender" [(ngModel)]="editGender" name="editGender" required>
+                                        <option value="">Seleziona</option>
+                                        <option value="Maschio">Maschio</option>
+                                        <option value="Femmina">Femmina</option>
+                                        <option value="Altro">Altro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editCompany" class="form-label">Società <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="editCompany" [(ngModel)]="editCompany" (change)="onEditCompanyChange()" name="editCompany" required>
+                                        <option value="">Seleziona società</option>
+                                        <option value="Acme Corporation">Acme Corporation</option>
+                                        <option value="TechSolutions S.r.l.">TechSolutions S.r.l.</option>
+                                        <option value="Global Industries">Global Industries</option>
+                                        <option value="Innovation Labs">Innovation Labs</option>
+                                        <option value="Digital Services">Digital Services</option>
+                                        <option value="Altra">Altra (specifica sotto)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" *ngIf="editShowOtherCompany">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="editOtherCompany" class="form-label">Specifica Società</label>
+                                    <input type="text" class="form-control" id="editOtherCompany" placeholder="Inserisci il nome della società" [(ngModel)]="editOtherCompany" name="editOtherCompany" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editMatricola" class="form-label">Matricola <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editMatricola" placeholder="Inserisci la matricola aziendale" [(ngModel)]="editMatricola" name="editMatricola" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Codice Utente</label>
+                                    <input type="text" class="form-control" id="editUserCode" [(ngModel)]="editUserCode" name="editUserCode" readonly style="background-color: #f8f9fa;">
+                                    <small class="text-muted">Codice generato automaticamente alla registrazione</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editNewPassword" class="form-label">Nuova Password</label>
+                                    <div class="position-relative">
+                                        <input [type]="editShowPassword ? 'text' : 'password'" class="form-control" id="editNewPassword" placeholder="Lascia vuoto per non modificare" [(ngModel)]="editNewPassword" name="editNewPassword">
+                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('editNewPassword')">
+                                            <i [class]="editShowPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Lascia vuoto se non vuoi modificare la password</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editConfirmPassword" class="form-label">Conferma Nuova Password</label>
+                                    <div class="position-relative">
+                                        <input [type]="editShowConfirmPassword ? 'text' : 'password'" class="form-control" id="editConfirmPassword" placeholder="Conferma la nuova password" [(ngModel)]="editConfirmPassword" name="editConfirmPassword">
+                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('editConfirmPassword')">
+                                            <i [class]="editShowConfirmPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-warning" (click)="saveUserChanges()">
+                        <i class="ri-save-line me-1"></i> Salva Modifiche
+                    </button>
+                </div>
+            </div>
+        </div>

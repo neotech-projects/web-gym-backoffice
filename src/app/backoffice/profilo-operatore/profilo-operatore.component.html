@@ -1,0 +1,194 @@
+<!-- start page title -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0">Profilo Operatore</h4>
+
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Dashboard</a></li>
+                                        <li class="breadcrumb-item active">Profilo</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end page title -->
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <ul class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#personalDetails" role="tab">
+                                                <i class="ri-user-line me-1 align-bottom"></i> Dati Personali
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#changePassword" role="tab">
+                                                <i class="ri-lock-line me-1 align-bottom"></i> Cambia Password
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content">
+                                        <div class="tab-pane active" id="personalDetails" role="tabpanel">
+                                            <div class="row">
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label for="displayFirstname" class="form-label">Nome</label>
+                                                        <input type="text" class="form-control" id="displayFirstname" [value]="profile?.firstName || ''" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label for="displayLastname" class="form-label">Cognome</label>
+                                                        <input type="text" class="form-control" id="displayLastname" [value]="profile?.lastName || ''" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label for="displayEmail" class="form-label">Email</label>
+                                                        <input type="email" class="form-control" id="displayEmail" [value]="profile?.email || ''" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label for="displayPhone" class="form-label">Telefono</label>
+                                                        <input type="text" class="form-control" id="displayPhone" [value]="profile?.phone || ''" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label for="displayBirthdate" class="form-label">Data di Nascita</label>
+                                                        <input type="text" class="form-control" id="displayBirthdate" [value]="profile?.birthdateDisplay || profile?.birthdate || ''" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label for="displayGender" class="form-label">Sesso</label>
+                                                        <input type="text" class="form-control" id="displayGender" [value]="profile?.gender || ''" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-12">
+                                                    <div class="d-flex justify-content-end">
+                                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                                            <i class="ri-edit-line me-1"></i> Modifica
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-pane" id="changePassword" role="tabpanel">
+                                            <form (ngSubmit)="changePassword(); $event.preventDefault()">
+                                                <div class="row g-2">
+                                                    <div class="col-lg-12">
+                                                        <div class="mb-3">
+                                                            <label for="oldpasswordInput" class="form-label">Vecchia Password*</label>
+                                                            <input type="password" class="form-control" id="oldpasswordInput" placeholder="Inserisci la vecchia password">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-6">
+                                                        <div class="mb-3">
+                                                            <label for="newpasswordInput" class="form-label">Nuova Password*</label>
+                                                            <input type="password" class="form-control" id="newpasswordInput" placeholder="Inserisci la nuova password">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-6">
+                                                        <div class="mb-3">
+                                                            <label for="confirmpasswordInput" class="form-label">Conferma Password*</label>
+                                                            <input type="password" class="form-control" id="confirmpasswordInput" placeholder="Conferma la nuova password">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="mb-3">
+                                                            <div class="alert alert-warning alert-border-left" role="alert">
+                                                                <i class="ri-alert-line me-3 align-middle fs-16"></i><strong>Requisiti Password</strong>
+                                                                <ul class="mb-0 mt-2">
+                                                                    <li>Minimo 8 caratteri</li>
+                                                                    <li>Almeno una lettera maiuscola</li>
+                                                                    <li>Almeno un numero</li>
+                                                                    <li>Almeno un carattere speciale (!&#64;#$%^&amp;*)</li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="text-end">
+                                                            <button type="button" class="btn btn-soft-secondary" (click)="clearPasswordFields()">Annulla</button>
+                                                            <button type="submit" class="btn btn-primary">Cambia Password</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+<!-- Modal Modifica Profilo -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">Modifica Dati Personali</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="editFirstname" class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="editFirstname" placeholder="Inserisci il tuo nome" value="Mario">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="editLastname" class="form-label">Cognome</label>
+                                    <input type="text" class="form-control" id="editLastname" placeholder="Inserisci il tuo cognome" value="Rossi">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="editEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="editEmail" placeholder="Inserisci la tua email" value="mario.rossi@email.com">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="editPhone" class="form-label">Telefono</label>
+                                    <input type="text" class="form-control" id="editPhone" placeholder="Inserisci il numero di telefono" value="+39 333 123 4567">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="editBirthdate" class="form-label">Data di Nascita</label>
+                                    <input type="date" class="form-control" id="editBirthdate" value="1990-05-15">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="editGender" class="form-label">Sesso</label>
+                                    <select class="form-select" id="editGender">
+                                        <option value="Maschio" selected>Maschio</option>
+                                        <option value="Femmina">Femmina</option>
+                                        <option value="Altro">Altro</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-primary" (click)="saveProfileChanges()">Salva</button>
+                </div>
+            </div>
+        </div>

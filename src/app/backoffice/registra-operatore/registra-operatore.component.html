@@ -1,0 +1,112 @@
+<!-- start page title -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0">Registra Nuovo Operatore</h4>
+
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Dashboard</a></li>
+                                        <li class="breadcrumb-item"><a routerLink="/backoffice/visualizza-operatori">Gestione Backoffice</a></li>
+                                        <li class="breadcrumb-item active">Registra Operatore</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end page title -->
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-header align-items-center d-flex bg-primary-subtle">
+                                    <h4 class="card-title mb-0 flex-grow-1">
+                                        <i class="ri-user-settings-line me-2"></i>Registrazione Operatore
+                                    </h4>
+                                    <div class="flex-shrink-0">
+                                        <button type="button" class="btn btn-soft-secondary btn-sm" onclick="resetForm()">
+                                            <i class="ri-refresh-line me-1"></i> Reset Form
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <form (ngSubmit)="onSubmit()" #registerOperatorForm="ngForm">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="firstName" class="form-label">Nome <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="firstName" placeholder="Inserisci il nome" [(ngModel)]="firstName" name="firstName" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="lastName" class="form-label">Cognome <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="lastName" placeholder="Inserisci il cognome" [(ngModel)]="lastName" name="lastName" required>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                                    <input type="email" class="form-control" id="email" placeholder="operatore@email.com" [(ngModel)]="email" name="email" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phone" class="form-label">Numero di Telefono <span class="text-danger">*</span></label>
+                                                    <input type="tel" class="form-control" id="phone" placeholder="+39 333 123 4567" [(ngModel)]="phone" name="phone" required>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="birthdate" class="form-label">Data di Nascita <span class="text-danger">*</span></label>
+                                                    <input type="date" class="form-control" id="birthdate" [(ngModel)]="birthdate" name="birthdate" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="gender" class="form-label">Sesso <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="gender" [(ngModel)]="gender" name="gender" required>
+                                                        <option value="">Seleziona</option>
+                                                        <option value="Maschio">Maschio</option>
+                                                        <option value="Femmina">Femmina</option>
+                                                        <option value="Altro">Altro</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="role" class="form-label">Ruolo <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="role" [(ngModel)]="role" name="role" required>
+                                                        <option value="">Seleziona ruolo</option>
+                                                        <option value="Operatore">Operatore</option>
+                                                        <option value="Admin">Admin</option>
+                                                    </select>
+                                                    <small class="text-muted">Seleziona il ruolo dell'operatore. L'Admin ha accesso completo a tutte le funzionalità.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="text-end">
+                                                    <button type="button" class="btn btn-soft-secondary" (click)="resetForm()">Annulla</button>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="ri-user-settings-line me-1"></i> Registra Operatore
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>

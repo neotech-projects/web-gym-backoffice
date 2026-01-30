@@ -1,0 +1,44 @@
+/* Stili specifici per il layout backoffice se necessario */
+
+/* Stili per il dropdown delle notifiche */
+.notification-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #a2adb7 #f1f1f1;
+}
+
+.notification-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notification-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.notification-scroll-container::-webkit-scrollbar-thumb {
+  background: #a2adb7;
+  border-radius: 4px;
+}
+
+.notification-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #8a96a3;
+}
+
+/* Stili per le notifiche compatte */
+.notification-item {
+  transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+.notification-item.bg-light {
+  background-color: rgba(0, 123, 255, 0.05) !important;
+}
+
+/* Assicura che il dropdown non sia troppo largo */
+#notificationDropdown .dropdown-menu {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+

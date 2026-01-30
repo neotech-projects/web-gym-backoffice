@@ -1,0 +1,247 @@
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Dashboard Backoffice</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Home</a></li>
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-xl-6 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Prenotazioni Settimanali</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <h5 class="text-info fs-14 mb-0">
+                            <i class="ri-arrow-up-line fs-13 align-middle"></i> +15
+                        </h5>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span>{{ bookingsCount }}</span></h4>
+                        <a routerLink="/backoffice/gestisci-prenotazioni" class="text-decoration-underline text-muted mb-0">Questa settimana</a>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded fs-3">
+                            <i class="ri-calendar-check-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Presenze Mensili</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <h5 class="text-warning fs-14 mb-0">
+                            <i class="ri-arrow-up-line fs-13 align-middle"></i> +8
+                        </h5>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span>{{ workoutsCount }}</span></h4>
+                        <a routerLink="/backoffice/gestisci-utenti" class="text-decoration-underline text-muted mb-0">Visualizza utenti</a>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded fs-3">
+                            <i class="ri-group-line text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-6 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Presenze Attuali</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span [class]="currentPresenceBadgeClass">{{ currentPresenceBadge }}</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span>{{ currentPresencesCount }}</span></h4>
+                        <a href="#" class="text-decoration-underline text-muted mb-0" (click)="viewCurrentPresences($event)">Visualizza presenze</a>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded fs-3">
+                            <i class="ri-user-location-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Apri Porta</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <div class="mb-4" style="height: 26px; display: flex; align-items: center;">
+                            <button type="button" class="btn btn-soft-primary" (click)="openDoor()" id="openDoorBtn" style="transform: translateY(30px);">
+                                <i class="ri-door-open-line me-2"></i> Apri Porta
+                            </button>
+                        </div>
+                        <a href="#" class="text-decoration-underline text-muted mb-0" style="visibility: hidden;">Spazio</a>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title rounded fs-3" style="background-color: #f0f2f5;">
+                            <img src="assets/images/porta2.png" alt="Apri Porta" style="width: 24px; height: 24px; object-fit: contain; display: block;">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">Prenotazioni della Settimana</h4>
+                <div class="flex-shrink-0">
+                    <a routerLink="/backoffice/gestisci-prenotazioni" class="btn btn-soft-info btn-sm">Vedi tutte</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive table-card">
+                    <table class="table table-borderless table-hover table-nowrap align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Utente</th>
+                                <th scope="col">Data</th>
+                                <th scope="col">Orario</th>
+                                <th scope="col">Durata</th>
+                                <th scope="col">Stato</th>
+                                <th scope="col">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs me-2">
+                                            <div class="avatar-title bg-primary-subtle text-primary rounded-circle">MR</div>
+                                        </div>
+                                        <span>Mario Rossi</span>
+                                    </div>
+                                </td>
+                                <td>Domani</td>
+                                <td>10:00 - 11:00</td>
+                                <td>1h</td>
+                                <td><span class="badge bg-success-subtle text-success">Confermata</span></td>
+                                <td><button type="button" class="btn btn-sm btn-soft-danger">Annulla</button></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs me-2">
+                                            <div class="avatar-title bg-success-subtle text-success rounded-circle">LB</div>
+                                        </div>
+                                        <span>Laura Bianchi</span>
+                                    </div>
+                                </td>
+                                <td>Tra 2 giorni</td>
+                                <td>14:00 - 15:30</td>
+                                <td>1h 30m</td>
+                                <td><span class="badge bg-success-subtle text-success">Confermata</span></td>
+                                <td><button type="button" class="btn btn-sm btn-soft-danger">Annulla</button></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs me-2">
+                                            <div class="avatar-title bg-warning-subtle text-warning rounded-circle">GV</div>
+                                        </div>
+                                        <span>Giovanni Verdi</span>
+                                    </div>
+                                </td>
+                                <td>Tra 3 giorni</td>
+                                <td>09:00 - 10:00</td>
+                                <td>1h</td>
+                                <td><span class="badge bg-success-subtle text-success">Confermata</span></td>
+                                <td><button type="button" class="btn btn-sm btn-soft-danger">Annulla</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Riepilogo Prossima Prenotazione -->
+<div class="modal fade" id="nextBookingModal" tabindex="-1" aria-labelledby="nextBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary-subtle">
+                <h5 class="modal-title" id="nextBookingModalLabel">Prossima Prenotazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Data</label>
+                    <input type="text" class="form-control" id="nextBookingDate" disabled>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Ora Inizio</label>
+                        <input type="text" class="form-control" id="nextBookingStartTime" disabled>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Ora Fine</label>
+                        <input type="text" class="form-control" id="nextBookingEndTime" disabled>
+                    </div>
+                </div>
+                <div class="alert alert-info" role="alert">
+                    <i class="ri-time-line me-2"></i>
+                    <strong>Durata:</strong> <span id="nextBookingDuration">1h</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Chiudi</button>
+                <a routerLink="/backoffice/gestisci-prenotazioni" class="btn btn-primary">Vai alle Prenotazioni</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--start back-to-top-->
+<button (click)="scrollToTop()" class="btn btn-danger btn-icon" id="back-to-top">
+    <i class="ri-arrow-up-line"></i>
+</button>
+<!--end back-to-top-->

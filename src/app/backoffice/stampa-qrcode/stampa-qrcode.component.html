@@ -1,0 +1,36 @@
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Stampa QRCode</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Home</a></li>
+                    <li class="breadcrumb-item active">Stampa QRCode</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<!-- QR Code Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-center align-items-center flex-column" style="min-height: 70vh;">
+                    <div class="text-center mb-4">
+                        <img src="assets/images/qrcodeprova.png" alt="QR Code" class="img-fluid" style="max-width: 400px;">
+                    </div>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-soft-primary btn-lg" (click)="generaQRCode()">
+                            <i class="ri-qr-code-line me-2"></i> Genera QR Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

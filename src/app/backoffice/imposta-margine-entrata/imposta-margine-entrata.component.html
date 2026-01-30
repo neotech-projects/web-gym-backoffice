@@ -1,0 +1,62 @@
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Imposta Margine Entrata</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a routerLink="/backoffice/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="#">Impostazioni</a></li>
+                    <li class="breadcrumb-item active">Imposta Margine Entrata</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">
+                    <i class="ri-time-line me-2"></i>Configurazione Margine Entrata
+                </h4>
+            </div>
+            <div class="card-body">
+                <form (ngSubmit)="onSubmit()" #margineForm="ngForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="margineEntrata" class="form-label">Margine Entrata (minuti) <span class="text-danger">*</span></label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="margineEntrata" 
+                                    placeholder="Inserisci il margine in minuti" 
+                                    [(ngModel)]="margineEntrata" 
+                                    name="margineEntrata" 
+                                    min="0"
+                                    required>
+                                <small class="text-muted">Il margine entrata definisce quanti minuti prima dell'orario di prenotazione un utente può entrare in palestra.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="text-end">
+                                <button type="button" class="btn btn-soft-secondary" (click)="margineForm.resetForm()">Annulla</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-save-line me-1"></i> Salva Impostazioni
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
