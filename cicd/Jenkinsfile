@@ -1,0 +1,134 @@
+pipeline {
+ 
+  agent {
+    kubernetes {
+      // Jenkins must have at least one Kubernetes Cloud configured (Manage Jenkins -> System -> Clouds).
+      // If you have multiple Kubernetes clouds, uncomment and set the right name:
+      cloud 'k8s'
+      label 'nginix'
+      defaultContainer 'nginx'
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: nginx
+      image: nginx:alpine
+      command:
+        - cat
+      tty: true
+    - name: node
+      image: node:20-alpine
+      command:
+        - cat
+      tty: true
+    - name: docker
+      image: docker:25-cli
+      command:
+        - cat
+      tty: true
+      volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+  volumes:
+    - name: docker-socket
+      hostPath:
+        path: /var/run/docker.sock
+"""
+    }
+  }
+
+  parameters {
+    gitParameter(
+      name: 'GIT_TAG',
+      type: 'PT_TAG',
+      defaultValue: '',
+      description: 'Seleziona il tag Git da buildare',
+      branchFilter: '.*',
+      tagFilter: '*',
+      sortMode: 'DESCENDING_SMART',
+      selectedValue: 'NONE',
+      useRepository: 'https://github.com/neotech-projects/web-gym-backoffice.git'
+    )
+  }
+
+  environment {
+    // IMPORTANT: Docker image names MUST NOT include the scheme (no http://)
+    REGISTRY   = '10.43.181.213:5000'
+    IMAGE_NAME = 'demo-fe'
+    GIT_URL    = 'https://github.com/neotech-projects/web-gym-backoffice.git'
+  }
+
+  stages {
+
+    stage('Verify tools') {
+      steps {
+        container('node') {
+          sh 'node -v && npm -v'
+        }
+      }
+    }
+
+    stage('Checkout tag') {
+      steps {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "refs/tags/${params.GIT_TAG}"]],
+          userRemoteConfigs: [[
+            url: "${GIT_URL}",
+            credentialsId: 'github-pat'
+          ]]
+        ])
+      }
+    }
+
+    stage('Build with NG') {
+      steps {
+        container('node') {
+          sh 'npm install --no-audit && npx ng build'
+          sh '''
+            OUT=dist/cloudtemplate-fe-angular
+            if [ -d "$OUT/browser" ]; then
+              mkdir -p dist/app && cp -r "$OUT/browser"/* dist/app/
+            else
+              mkdir -p dist/app && cp -r "$OUT"/* dist/app/
+            fi
+            ls -la dist/app/
+          '''
+        }
+      }
+    }
+
+    stage('Build & Push image') {
+      steps {
+        script {
+          env.IMAGE_TAG = params.GIT_TAG
+        }
+        container('docker') {
+          sh """
+            docker build -f cicd/Dockerfile -t ${env.REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG} .
+            docker push ${env.REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
+          """
+        }
+      }
+    }
+
+  }
+
+  post {
+    always {
+      script {
+        // Post cleanup.
+        if (!env.WORKSPACE) {
+          echo 'Post cleanup skipped: no WORKSPACE context (agent not allocated).'
+        }
+      }
+    }
+    success {
+      echo "✅ Build completata per tag ${params.GIT_TAG}"
+    }
+    failure {
+      echo "❌ Build fallita"
+    }
+  }
+}
