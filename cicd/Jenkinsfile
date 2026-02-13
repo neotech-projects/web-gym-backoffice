@@ -82,7 +82,7 @@ spec:
       }
     }
 
-    stage('Build with NG') {
+    stage('Build') {
       steps {
         container('node') {
           sh 'npm install --no-audit && npx ng build'
