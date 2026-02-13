@@ -76,7 +76,8 @@ spec:
           branches: [[name: "refs/tags/${params.GIT_TAG}"]],
           userRemoteConfigs: [[
             url: "${GIT_URL}",
-            credentialsId: 'github-pat'
+            credentialsId: 'github-pat',
+            refspec: '+refs/tags/*:refs/tags/*'
           ]]
         ])
       }
