@@ -1,43 +1,98 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
-# Compiled output
+# =====================
+# Build / Output
+# =====================
 /dist
 /tmp
 /out-tsc
+/build
 /bazel-out
+*.tsbuildinfo
 
+# Angular cache
+.angular/
+.angular/cache
+
+# =====================
 # Node
+# =====================
 /node_modules
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store
+.npm
+.yarn-integrity
+*.log
 
+# =====================
+# Testing / Coverage
+# =====================
+/coverage
+.nyc_output
+*.lcov
+/e2e/screenshots
+/e2e/videos
+/test-results
+/playwright-report
+/blob-report
+
+# =====================
 # IDEs and editors
+# =====================
 .idea/
+*.iml
 .project
 .classpath
 .c9/
 *.launch
 .settings/
 *.sublime-workspace
+*.sublime-project
 
-# Visual Studio Code
+# VS Code (mantieni solo file utili)
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
+!.vscode/*.json
+.history/
 
-# Miscellaneous
-/.angular/cache
+# =====================
+# Environment / Secrets
+# =====================
+.env
+.env.local
+.env.*.local
+*.env
+
+# =====================
+# Misc
+# =====================
 .sass-cache/
 /connect.lock
-/coverage
 /libpeerconnection.log
 testem.log
 /typings
+*.pid
+*.seed
+*.pid.lock
+.cache/
 
-# System files
+# =====================
+# System
+# =====================
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
+# =====================
+# Optional (decommenta se usi)
+# =====================
+# /storybook-static
+# .firebase/
+# *.tgz
