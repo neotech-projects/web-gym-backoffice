@@ -55,7 +55,7 @@ spec:
   environment {
     // IMPORTANT: Docker image names MUST NOT include the scheme (no http://)
     REGISTRY   = '10.43.181.213:5000'
-    IMAGE_NAME = 'demo-fe'
+    IMAGE_NAME = 'gym-investire-backoffice-web'
     GIT_URL    = 'https://github.com/neotech-projects/web-gym-backoffice.git'
   }
 
