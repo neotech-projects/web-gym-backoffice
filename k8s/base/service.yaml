@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: srv-demo-fe
+  name: srv-gym-investire-backoffice-web-coll
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: demo-fe
+    app.kubernetes.io/name: gym-investire-backoffice-web-coll
   ports:
     - name: http
       protocol: TCP
