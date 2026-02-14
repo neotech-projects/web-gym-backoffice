@@ -7,4 +7,4 @@ resources:
 
 images:
   - name: gym-investire-backoffice-web
-    newName: 10.43.181.213:5000/gym-investire-backoffice-web
+    newName: 10.43.107.205/gym-investire-backoffice-web
