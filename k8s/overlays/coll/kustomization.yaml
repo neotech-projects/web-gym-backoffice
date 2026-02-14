@@ -4,6 +4,4 @@ kind: Kustomization
 resources:
   - ../../base
   - configmap.yaml
-
-patches:
-  - path: replicas-patch.yaml
+  - replicas-patch.yaml
