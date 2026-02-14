@@ -4,4 +4,3 @@ metadata:
   name: gym-investire-backoffice-web
 spec:
   replicas: 1
-  revisionHistoryLimit: 1
