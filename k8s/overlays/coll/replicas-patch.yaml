@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gym-investire-backoffice-web-coll
+  name: gym-investire-backoffice-web
 spec:
   replicas: 1
   revisionHistoryLimit: 1
