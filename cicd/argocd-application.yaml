@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gym-investire-backoffice-web-coll
+  name: gym-investire-backoffice-web
   namespace: ns-neotech-devops
 spec:
   project: neotech-coll

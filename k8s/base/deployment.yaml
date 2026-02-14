@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gym-investire-backoffice-web-coll
+  name: gym-investire-backoffice-web
   labels:
-    app.kubernetes.io/name:gym-investire-backoffice-web-coll
+    app.kubernetes.io/name:gym-investire-backoffice-web
 spec:
   replicas: 1
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: gym-investire-backoffice-web-coll
+      app.kubernetes.io/name: gym-investire-backoffice-web
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: gym-investire-backoffice-web-coll
+        app.kubernetes.io/name: gym-investire-backoffice-web
     spec:
       containers:
         - name: nginx
@@ -41,4 +41,4 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: cmap-gym-investire-backoffice-web-coll
+            name: cmap-gym-investire-backoffice-web

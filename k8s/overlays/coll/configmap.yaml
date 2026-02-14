@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cmap-gym-investire-backoffice-web-coll
+  name: cmap-gym-investire-backoffice-web
 data:
   default.conf: |
     server {

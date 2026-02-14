@@ -7,5 +7,5 @@ resources:
   - service.yaml
 
 images:
-  - name: cmap-gym-investire-backoffice-web-coll
-    newName: 10.43.181.213:5000/cmap-gym-investire-backoffice-web
+  - name: gym-investire-backoffice-web
+    newName: 10.43.181.213:5000/gym-investire-backoffice-web
