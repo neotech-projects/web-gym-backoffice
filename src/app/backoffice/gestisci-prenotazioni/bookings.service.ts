@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { BookingsResponse, Booking } from '../../shared/models/booking-data.interface';
+import { Booking, BookingsResponse } from '../../shared/models/booking-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -129,13 +129,13 @@ export class BookingsService {
       return this.getMockBookings().pipe(
         map(data => {
           // Filtra le prenotazioni base per la data
-          const baseBookings = data.bookings.filter(booking => {
+          const baseBookings = data.bookings.filter((booking: Booking) => {
             const bookingDate = booking.start.split('T')[0];
             return bookingDate === date;
           });
           
           // Filtra anche allBookings per ottenere i dettagli completi (utente, ecc.)
-          const detailedBookings = data.allBookings.filter(booking => {
+          const detailedBookings = data.allBookings.filter((booking: Booking) => {
             const bookingDate = booking.start.split('T')[0];
             return bookingDate === date;
           });
@@ -158,14 +158,14 @@ export class BookingsService {
           });
           
           // Filtro finale per sicurezza: assicurati che tutte le prenotazioni siano del giorno richiesto
-          const finalFiltered = combined.filter(booking => {
+          const finalFiltered = combined.filter((booking: Booking) => {
             if (!booking.start) return false;
             const bookingDate = booking.start.split('T')[0];
             return bookingDate === date;
           });
           
           // Verifica finale: assicurati che tutte le prenotazioni siano del giorno richiesto
-          const verified = finalFiltered.filter(booking => {
+          const verified = finalFiltered.filter((booking: Booking) => {
             if (!booking.start) {
               return false;
             }
@@ -188,7 +188,7 @@ export class BookingsService {
           this.serverAvailable = true;
           
           // Filtro aggiuntivo per sicurezza
-          const filtered = response.data.filter(booking => {
+          const filtered = response.data.filter((booking: Booking) => {
             if (!booking.start) return false;
             const bookingDate = booking.start.split('T')[0];
             return bookingDate === date;
@@ -233,7 +233,7 @@ export class BookingsService {
         };
         
         // Aggiorna le date nelle prenotazioni
-        const updatedBookings = data.bookings.map(booking => {
+        const updatedBookings = data.bookings.map((booking: Booking) => {
           if (booking.start) {
             const originalDate = booking.start.split('T')[0];
             const newDate = dateMap[originalDate] || originalDate;
@@ -248,7 +248,7 @@ export class BookingsService {
         });
         
         // Aggiorna le date in allBookings
-        const updatedAllBookings = data.allBookings.map(booking => {
+        const updatedAllBookings = data.allBookings.map((booking: Booking) => {
           if (booking.start) {
             const originalDate = booking.start.split('T')[0];
             const newDate = dateMap[originalDate] || originalDate;
