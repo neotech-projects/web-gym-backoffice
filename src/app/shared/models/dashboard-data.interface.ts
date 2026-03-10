@@ -5,6 +5,21 @@ export interface DashboardStats {
   lastUpdate: string;
 }
 
+/** Risposta GET /api/dashboard/stats da ms-gym-backoffice */
+export interface DashboardStatsBackendResponse {
+  presenzeAttuali: number;
+  listaPresenzaAttuali: AccessoBackend[];
+}
+
+/** DTO Accesso restituito da ms-gym-backoffice (lista presenze) */
+export interface AccessoBackend {
+  id: number;
+  utenteId: number;
+  prenotazioneId?: number;
+  dataOraAccesso: string;
+  esito: string;
+}
+
 export interface DashboardResponse {
   success: boolean;
   data: DashboardStats;

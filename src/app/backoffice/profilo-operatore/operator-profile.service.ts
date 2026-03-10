@@ -1,25 +1,26 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { OperatorProfile, OperatorProfileResponse } from '../../shared/models/operator-profile-data.interface';
+import { catchError, map } from 'rxjs/operators';
+import { OperatorProfile } from '../../shared/models/operator-profile-data.interface';
+import { UtenteBackend } from '../../shared/models/operator-data.interface';
 import { OperatorsService } from '../visualizza-operatori/operators.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OperatorProfileService {
-  // URL del microservizio - usa URL relativo quando il proxy è configurato
-  // In produzione sostituire con l'URL reale del microservizio
-  private readonly API_URL = '/api/operator/profile';
-  
-  // URL per il mock locale (usato quando il microservizio non è disponibile)
+  // Base URL ms-gym-backoffice: /api/operatori (profilo sotto /profilo e /profilo/cambio-password)
+  private get API_BASE(): string {
+    const base = environment.apiUrl;
+    return base ? `${base}/api/operatori` : '/api/operatori';
+  }
+
   private readonly MOCK_URL = '/assets/mock/operator-profile.json';
-  
-  // Flag per tracciare se il server è disponibile
   private serverAvailable: boolean = true;
   private lastCheck: number = 0;
-  private readonly CHECK_INTERVAL = 60000; // Controlla ogni minuto
+  private readonly CHECK_INTERVAL = 60000;
 
   constructor(
     private http: HttpClient,
@@ -73,72 +74,65 @@ export class OperatorProfileService {
   }
 
   /**
-   * Recupera il profilo dell'operatore dal microservizio
-   * In caso di errore, fallback al mock locale
-   * @param operatorId ID dell'operatore di cui recuperare il profilo
+   * Recupera il profilo dell'operatore.
+   * Con operatorId: GET /api/operatori/profilo?utenteId=X (ms-gym-backoffice).
+   * Senza operatorId: fallback su getOperators().find().
    */
   getProfile(operatorId?: number | string): Observable<OperatorProfile> {
-    // Se è fornito un ID operatore, recupera i dati da OperatorsService
     if (operatorId) {
-      return this.operatorsService.getOperators().pipe(
-        map(operators => {
-          const operator = operators.find(op => op.id.toString() === operatorId.toString());
-          if (!operator) {
-            throw new Error('Operatore non trovato');
-          }
-          // Converte Operator in OperatorProfile
-          const profile: OperatorProfile = {
-            id: operator.id,
-            firstName: operator.firstName,
-            lastName: operator.lastName,
-            email: operator.email,
-            phone: operator.phone,
-            birthdate: operator.birthdate,
-            birthdateDisplay: operator.birthdateDisplay,
-            gender: operator.gender,
-            role: operator.role
-          };
-          return profile;
+      if (!this.isServerAvailable()) {
+        return this.getMockProfile(operatorId);
+      }
+      const params = { utenteId: String(operatorId) };
+      return this.http.get<UtenteBackend>(`${this.API_BASE}/profilo`, { params }).pipe(
+        map(u => {
+          this.serverAvailable = true;
+          return this.mapUtenteToProfile(u);
         }),
-        catchError(error => {
-          console.error('Errore nel recupero dell\'operatore:', error);
-          return this.getMockProfile(operatorId);
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 404 || error.status === 403) {
+            this.serverAvailable = false;
+            return this.getMockProfile(operatorId);
+          }
+          return this.handleConnectionError(error, () => this.getMockProfile(operatorId));
         })
       );
     }
 
-    // Se il server non è disponibile, usa direttamente il mock
-    if (!this.isServerAvailable()) {
-      return this.getMockProfile();
-    }
-
-    return this.http.get<OperatorProfileResponse>(this.API_URL, {
-      // Aggiungi headers per evitare problemi di CORS
-      headers: {
-        'Accept': 'application/json'
-      }
-    }).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          // Formatta la data di nascita per la visualizzazione
-          return {
-            ...response.data,
-            birthdateDisplay: response.data.birthdate ? new Date(response.data.birthdate).toLocaleDateString('it-IT') : undefined
-          };
-        }
-        throw new Error(response.message || 'Invalid response format');
+    // Senza ID: fallback da lista operatori (comportamento legacy)
+    return this.operatorsService.getOperators().pipe(
+      map(operators => {
+        if (operators.length === 0) throw new Error('Nessun operatore trovato');
+        const op = operators[0];
+        return {
+          id: op.id,
+          firstName: op.firstName,
+          lastName: op.lastName,
+          email: op.email,
+          phone: op.phone,
+          birthdate: op.birthdate,
+          birthdateDisplay: op.birthdateDisplay,
+          gender: op.gender,
+          role: op.role ?? 'Operatore'
+        };
       }),
-      catchError((error: HttpErrorResponse) => {
-        // Se è un 404 e il proxy non funziona, usa il mock senza loggare l'errore
-        if (error.status === 404) {
-          this.serverAvailable = false;
-          // Non loggare l'errore 404 se il fallback funziona
-          return this.getMockProfile();
-        }
-        return this.handleConnectionError(error, () => this.getMockProfile());
-      })
+      catchError(() => this.getMockProfile())
     );
+  }
+
+  private mapUtenteToProfile(u: UtenteBackend): OperatorProfile {
+    const birthdate = u.dataNascita ? (typeof u.dataNascita === 'string' ? u.dataNascita : '') : '';
+    return {
+      id: u.id ?? 0,
+      firstName: u.nome ?? '',
+      lastName: u.cognome ?? '',
+      email: u.email ?? '',
+      phone: u.telefono ?? '',
+      birthdate,
+      birthdateDisplay: birthdate ? new Date(birthdate).toLocaleDateString('it-IT') : undefined,
+      gender: u.sesso ?? '',
+      role: u.tipoUtente ?? 'OPERATORE'
+    };
   }
 
   /**
@@ -212,56 +206,63 @@ export class OperatorProfileService {
   }
 
   /**
-   * Aggiorna il profilo dell'operatore
+   * Aggiorna il profilo (solo email e telefono).
+   * PUT /api/operatori/profilo?utenteId=X, body ModificaProfiloRequest.
+   * profile.id è obbligatorio per utenteId.
    */
   updateProfile(profile: Partial<OperatorProfile>): Observable<OperatorProfile> {
-    if (!this.isServerAvailable()) {
-      // Simula aggiornamento locale
+    const utenteId = profile?.id;
+    if (utenteId == null) {
       return this.getMockProfile().pipe(
-        map(mockProfile => ({ ...mockProfile, ...profile } as OperatorProfile))
+        map(mock => ({ ...mock, ...profile } as OperatorProfile))
       );
     }
 
-    return this.http.put<OperatorProfileResponse>(this.API_URL, profile).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return {
-            ...response.data,
-            birthdateDisplay: response.data.birthdate ? new Date(response.data.birthdate).toLocaleDateString('it-IT') : undefined
-          };
-        }
-        throw new Error(response.message || 'Invalid response format');
+    if (!this.isServerAvailable()) {
+      return this.getMockProfile(utenteId).pipe(
+        map(mock => ({ ...mock, ...profile } as OperatorProfile))
+      );
+    }
+
+    const body = { email: profile.email, telefono: profile.phone };
+    const params = { utenteId: String(utenteId) };
+    return this.http.put<UtenteBackend>(`${this.API_BASE}/profilo`, body, { params }).pipe(
+      map(updated => {
+        this.serverAvailable = true;
+        return this.mapUtenteToProfile(updated);
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula l'aggiornamento locale
-        return this.getMockProfile().pipe(
-          map(mockProfile => ({ ...mockProfile, ...profile } as OperatorProfile))
+        return this.handleConnectionError(error, () =>
+          this.getMockProfile(utenteId).pipe(
+            map(mock => ({ ...mock, ...profile } as OperatorProfile))
+          )
         );
       })
     );
   }
 
   /**
-   * Cambia la password dell'operatore
+   * Cambia la password dell'operatore.
+   * POST /api/operatori/profilo/cambio-password?utenteId=X, body { vecchiaPassword, nuovaPassword }.
    */
-  changePassword(oldPassword: string, newPassword: string): Observable<boolean> {
+  changePassword(operatorId: number | string, oldPassword: string, newPassword: string): Observable<boolean> {
     if (!this.isServerAvailable()) {
-      // Simula cambio password locale
       return of(true);
     }
 
-    return this.http.post<{ success: boolean; message?: string }>(`${this.API_URL}/change-password`, {
-      oldPassword,
-      newPassword
-    }).pipe(
+    const params = { utenteId: String(operatorId) };
+    const body = { vecchiaPassword: oldPassword, nuovaPassword: newPassword };
+    return this.http.post<void>(`${this.API_BASE}/profilo/cambio-password`, body, { params, observe: 'response' }).pipe(
       map(response => {
         this.serverAvailable = true;
-        return response.success;
+        return response.status >= 200 && response.status < 300;
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula il cambio password locale
-        return of(true);
+        // 401 = vecchia password non valida, propagato al componente
+        if (error.status === 401) {
+          return of(false);
+        }
+        return this.handleConnectionError(error, () => of(true));
       })
     );
   }

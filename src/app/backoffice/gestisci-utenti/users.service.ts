@@ -2,23 +2,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { User, UsersResponse, UserResponse } from '../../shared/models/user-data.interface';
+import { User, UtenteBackend } from '../../shared/models/user-data.interface';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
-  // URL del microservizio - usa URL relativo quando il proxy è configurato
-  // In produzione sostituire con l'URL reale del microservizio
-  private readonly API_URL = '/api/users';
-  
-  // URL per il mock locale (usato quando il microservizio non è disponibile)
+  // Come operatori: environment.apiUrl + path (/api/utenti)
+  private get API_URL(): string {
+    const base = environment.apiUrl;
+    return base ? `${base}/api/utenti` : '/api/utenti';
+  }
+
   private readonly MOCK_URL = '/assets/mock/users.json';
-  
-  // Flag per tracciare se il server è disponibile
   private serverAvailable: boolean = true;
   private lastCheck: number = 0;
-  private readonly CHECK_INTERVAL = 60000; // Controlla ogni minuto
+  private readonly CHECK_INTERVAL = 60000;
 
   constructor(private http: HttpClient) {}
 
@@ -35,7 +35,7 @@ export class UsersService {
   }
 
   /**
-   * Normalizza un utente: migra certificatoMedico → dichiarazioneManleva per retrocompatibilità.
+   * Normalizza un utente: migra certificatoMedico → dichiarazioneManleva per retrocompatibilità (mock).
    */
   private normalizeUser(user: any): User {
     const { certificatoMedico, ...rest } = user;
@@ -44,6 +44,50 @@ export class UsersService {
       dichiarazioneManleva: user.dichiarazioneManleva ?? certificatoMedico,
       birthdateDisplay: user.birthdate ? new Date(user.birthdate).toLocaleDateString('it-IT') : user.birthdateDisplay
     } as User;
+  }
+
+  /** Mappa il DTO Utente del backend nel modello User usato dalla UI */
+  private mapUtenteToUser(u: UtenteBackend): User {
+    const birthdate = u.dataNascita ? (typeof u.dataNascita === 'string' ? u.dataNascita : '') : '';
+    return {
+      id: u.id ?? 0,
+      firstName: u.nome ?? '',
+      lastName: u.cognome ?? '',
+      email: u.email ?? '',
+      phone: u.telefono ?? '',
+      company: u.societaNome ?? '',
+      birthdate,
+      birthdateDisplay: birthdate ? new Date(birthdate).toLocaleDateString('it-IT') : undefined,
+      gender: u.sesso ?? '',
+      matricola: u.matricola ?? '',
+      userCode: u.tipoUtente ?? u.matricola ?? '',
+      status: u.stato ?? '',
+      registrationDate: u.creato,
+      societaId: u.societaId
+    };
+  }
+
+  /** Mappa User (UI) in UtenteBackend per POST/PUT.
+   * Invia societaNome (company) quando valorizzato, così il backend può creare la società se non esiste. */
+  private mapUserToUtente(user: Partial<User>): UtenteBackend {
+    const body: UtenteBackend = {
+      id: typeof user.id === 'number' ? user.id : undefined,
+      nome: user.firstName ?? '',
+      cognome: user.lastName ?? '',
+      email: user.email ?? '',
+      telefono: user.phone ?? undefined,
+      dataNascita: user.birthdate || undefined,
+      sesso: user.gender || undefined,
+      tipoUtente: user.userCode || undefined,
+      stato: user.status || undefined,
+      societaId: user.societaId,
+      matricola: user.matricola,
+      password: user.password
+    };
+    if (user.company != null && user.company.trim() !== '') {
+      body.societaNome = user.company.trim();
+    }
+    return body;
   }
 
   /**
@@ -81,33 +125,24 @@ export class UsersService {
   }
 
   /**
-   * Recupera la lista degli utenti dal microservizio
-   * In caso di errore, fallback al mock locale
+   * Recupera la lista degli utenti da ms-gym-backoffice (GET /api/utenti).
+   * Il backend restituisce List<Utente> = array senza wrapper.
    */
   getUsers(): Observable<User[]> {
-    // Se il server non è disponibile, usa direttamente il mock
     if (!this.isServerAvailable()) {
       return this.getMockUsers();
     }
 
-    return this.http.get<UsersResponse>(this.API_URL, {
-      // Aggiungi headers per evitare problemi di CORS
-      headers: {
-        'Accept': 'application/json'
-      }
+    return this.http.get<UtenteBackend[]>(this.API_URL, {
+      headers: { 'Accept': 'application/json' }
     }).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return response.data.map(user => this.normalizeUser(user));
-        }
-        throw new Error(response.message || 'Invalid response format');
+      map(list => {
+        this.serverAvailable = true;
+        return (list || []).map(u => this.mapUtenteToUser(u));
       }),
       catchError((error: HttpErrorResponse) => {
-        // Se è un 404 e il proxy non funziona, usa il mock senza loggare l'errore
         if (error.status === 404) {
           this.serverAvailable = false;
-          // Non loggare l'errore 404 se il fallback funziona
           return this.getMockUsers();
         }
         return this.handleConnectionError(error, () => this.getMockUsers());
@@ -130,70 +165,68 @@ export class UsersService {
   }
 
   /**
-   * Crea un nuovo utente
+   * Crea un nuovo utente (POST /api/utenti). Body in formato Utente; risposta Utente.
    */
   createUser(user: User): Observable<User> {
     if (!this.isServerAvailable()) {
-      // Simula creazione locale
-      return of({ ...user, id: Date.now() });
+      return of({ ...user, id: Date.now() } as User);
     }
 
-    return this.http.post<UserResponse>(this.API_URL, user).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return this.normalizeUser(response.data);
-        }
-        throw new Error(response.message || 'Invalid response format');
+    const body = this.mapUserToUtente(user);
+    return this.http.post<UtenteBackend>(this.API_URL, body).pipe(
+      map(created => {
+        this.serverAvailable = true;
+        return this.mapUtenteToUser(created);
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula la creazione locale
-        return of({ ...user, id: Date.now() });
+        // Errore business (email duplicata, validazione): non usare mock, propaga l'errore alla UI
+        if (error.status === 409 || error.status === 400) {
+          throw error;
+        }
+        return this.handleConnectionError(error, () =>
+          of({ ...user, id: Date.now() } as User)
+        );
       })
     );
   }
 
   /**
-   * Aggiorna un utente esistente
+   * Aggiorna un utente esistente (PUT /api/utenti/{id}). Body in formato Utente; risposta Utente.
    */
   updateUser(userId: number | string, user: Partial<User>): Observable<User> {
     if (!this.isServerAvailable()) {
-      // Simula aggiornamento locale
       return of({ ...user, id: userId } as User);
     }
 
-    return this.http.put<UserResponse>(`${this.API_URL}/${userId}`, user).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return this.normalizeUser(response.data);
-        }
-        throw new Error(response.message || 'Invalid response format');
+    const body = this.mapUserToUtente(user);
+    return this.http.put<UtenteBackend>(`${this.API_URL}/${userId}`, body).pipe(
+      map(updated => {
+        this.serverAvailable = true;
+        return this.mapUtenteToUser(updated);
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula l'aggiornamento locale
-        return of({ ...user, id: userId } as User);
+        return this.handleConnectionError(error, () =>
+          of({ ...user, id: userId } as User)
+        );
       })
     );
   }
 
   /**
-   * Elimina un utente
+   * Elimina un utente (DELETE /api/utenti/{id}). Backend restituisce 204 No Content.
    */
   deleteUser(userId: number | string): Observable<boolean> {
     if (!this.isServerAvailable()) {
-      // Simula eliminazione locale
       return of(true);
     }
 
-    return this.http.delete<{ success: boolean; message?: string }>(`${this.API_URL}/${userId}`).pipe(
+    return this.http.delete<void>(`${this.API_URL}/${userId}`, { observe: 'response' }).pipe(
       map(response => {
         this.serverAvailable = true;
-        return response.success;
+        return response.status >= 200 && response.status < 300;
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula l'eliminazione locale
-        return of(true);
+        return this.handleConnectionError(error, () => of(true));
       })
     );
   }

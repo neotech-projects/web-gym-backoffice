@@ -1,17 +1,31 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { DashboardResponse, DashboardStats, CurrentPresencesResponse, CurrentPresence } from '../../shared/models/dashboard-data.interface';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { DashboardStats, DashboardStatsBackendResponse, AccessoBackend, CurrentPresence } from '../../shared/models/dashboard-data.interface';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class DashboardService {
-  // URL del microservizio - usa URL relativo quando il proxy è configurato
-  // In produzione sostituire con l'URL reale del microservizio
-  private readonly API_URL = '/api/dashboard/stats';
+  // Base API: environment.apiUrl + path /api/dashboard/stats 
+  private get API_URL(): string {
+    const base = environment.apiUrl;
+    return base ? `${base}/api/dashboard/stats` : '/api/dashboard/stats';
+  }
+
+  private get PRENOTAZIONI_URL(): string {
+    const base = environment.apiUrl;
+    return base ? `${base}/api/prenotazioni` : '/api/prenotazioni';
+  }
+
+  constructor(private http: HttpClient) {}
   
+
+  
+
   // URL per il mock locale (usato quando il microservizio non è disponibile)
   private readonly MOCK_URL = '/assets/mock/dashboard-stats.json';
   
@@ -20,7 +34,7 @@ export class DashboardService {
   private lastCheck: number = 0;
   private readonly CHECK_INTERVAL = 60000; // Controlla ogni minuto
 
-  constructor(private http: HttpClient) {}
+ 
 
   /**
    * Verifica se il server è disponibile (con cache per evitare troppe chiamate)
@@ -69,28 +83,60 @@ export class DashboardService {
   }
 
   /**
-   * Recupera le statistiche della dashboard dal microservizio
-   * In caso di errore, fallback al mock locale
+   * Il backend restituisce { presenzeAttuali, listaPresenzaAttuali }; le prenotazioni settimanali
+   * si ricavano da GET /api/prenotazioni contando quelle nella settimana corrente (lun-dom).
    */
   getDashboardStats(): Observable<DashboardStats> {
-    // Se il server non è disponibile, usa direttamente il mock
     if (!this.isServerAvailable()) {
       return this.getMockStats();
     }
 
-    return this.http.get<DashboardResponse>(this.API_URL, {
-      // Timeout di 2 secondi per evitare attese lunghe
-    }).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return response.data;
-        }
-        throw new Error(response.message || 'Invalid response format');
+    return this.http.get<DashboardStatsBackendResponse>(this.API_URL).pipe(
+      switchMap(response => {
+        this.serverAvailable = true;
+        return this.getWeeklyBookingsCount().pipe(
+          map(weeklyBookings => ({
+            weeklyBookings,
+            monthlyPresences: 0,
+            currentPresences: response.presenzeAttuali ?? 0,
+            lastUpdate: new Date().toISOString()
+          }))
+        );
       }),
       catchError((error: HttpErrorResponse) => {
         return this.handleConnectionError(error, () => this.getMockStats());
       })
+    );
+  }
+
+  /** Conta le prenotazioni la cui data ricade nella settimana corrente (lunedì–domenica). */
+  private getWeeklyBookingsCount(): Observable<number> {
+    return this.http.get<{ data?: string | number }[]>(this.PRENOTAZIONI_URL, { headers: { Accept: 'application/json' } }).pipe(
+      map(list => {
+        const now = new Date();
+        const day = now.getDay();
+        const diffToMonday = day === 0 ? -6 : 1 - day;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + diffToMonday);
+        monday.setHours(0, 0, 0, 0);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+        const weekStart = monday.getTime();
+        const weekEnd = sunday.getTime();
+        return (list || []).filter(p => {
+          let dateMs: number;
+          if (p.data == null) return false;
+          if (typeof p.data === 'number') dateMs = p.data;
+          else {
+            const str = typeof p.data === 'string' && p.data.length >= 10 ? p.data.slice(0, 10) : '';
+            if (!str) return false;
+            dateMs = new Date(str + 'T12:00:00').getTime();
+          }
+          return dateMs >= weekStart && dateMs <= weekEnd;
+        }).length;
+      }),
+      catchError(() => of(0))
     );
   }
 
@@ -113,23 +159,22 @@ export class DashboardService {
   }
 
   /**
-   * Recupera solo le presenze attuali (per aggiornamenti periodici)
+   * Recupera solo le presenze attuali /stats/presenze-attuali)
    */
   getCurrentPresences(): Observable<number> {
-    // Se il server non è disponibile, usa direttamente il mock
     if (!this.isServerAvailable()) {
       return this.getMockStats().pipe(
         map(stats => stats.currentPresences)
       );
     }
 
-    return this.http.get<{ success: boolean; currentPresences: number }>(`${this.API_URL}/current-presences`).pipe(
-      map(response => {
+    return this.http.get<number>(`${this.API_URL}/presenze-attuali`).pipe(
+      map(count => {
         this.serverAvailable = true;
-        return response.currentPresences;
+        return count ?? 0;
       }),
       catchError((error: HttpErrorResponse) => {
-        return this.handleConnectionError(error, () => 
+        return this.handleConnectionError(error, () =>
           this.getMockStats().pipe(
             map(stats => stats.currentPresences)
           )
@@ -139,23 +184,39 @@ export class DashboardService {
   }
 
   /**
-   * Recupera la lista delle presenze attuali con i nominativi
+   * Recupera la lista delle presenze attuali (endpoint ms-gym-backoffice: /stats/lista-presenza-attuali).
+   * Il backend restituisce Accesso[]; mappiamo in CurrentPresence[] per la UI.
    */
   getCurrentPresencesList(): Observable<CurrentPresence[]> {
-    // Se il server non è disponibile, usa direttamente il mock
     if (!this.isServerAvailable()) {
       return this.getMockPresencesList();
     }
 
-    return this.http.get<CurrentPresencesResponse>(`${this.API_URL}/current-presences-list`).pipe(
-      map(response => {
+    return this.http.get<AccessoBackend[]>(`${this.API_URL}/lista-presenza-attuali`).pipe(
+      map(list => {
         this.serverAvailable = true;
-        return response.presences || [];
+        return (list || []).map(a => this.mapAccessoToCurrentPresence(a));
       }),
       catchError((error: HttpErrorResponse) => {
         return this.handleConnectionError(error, () => this.getMockPresencesList());
       })
     );
+  }
+
+  /** Mappa il DTO Accesso del backend nel modello CurrentPresence usato dalla UI */
+  private mapAccessoToCurrentPresence(a: AccessoBackend): CurrentPresence {
+    const dataOra = a.dataOraAccesso ? new Date(a.dataOraAccesso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '';
+    return {
+      id: a.id,
+      firstName: '',
+      lastName: '',
+      fullName: `Utente ${a.utenteId}`,
+      company: undefined,
+      bookingNote: a.esito || undefined,
+      bookingStartTime: dataOra,
+      bookingEndTime: undefined,
+      bookingDuration: undefined
+    };
   }
 
   /**

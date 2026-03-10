@@ -11,6 +11,28 @@ export interface Operator {
   status: string;
   password?: string;
   registrationDate?: string;
+  societaId?: number;
+  societaNome?: string;
+  matricola?: string;
+}
+
+/** Risposta GET /api/operatori da ms-gym-backoffice (List<Utente> = array senza wrapper) */
+export interface UtenteBackend {
+  id?: number;
+  nome: string;
+  cognome: string;
+  email: string;
+  telefono?: string;
+  dataNascita?: string;
+  sesso?: string;
+  tipoUtente?: string;
+  stato?: string;
+  societaId?: number;
+  societaNome?: string;
+  matricola?: string;
+  creato?: string;
+  aggiornato?: string;
+  password?: string;
 }
 
 export interface OperatorsResponse {

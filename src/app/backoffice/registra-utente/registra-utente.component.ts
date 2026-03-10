@@ -2,6 +2,8 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { UsersService } from '../gestisci-utenti/users.service';
+import { User } from '../../shared/models/user-data.interface';
 
 @Component({
   selector: 'app-registra-utente',
@@ -25,8 +27,12 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   showOtherCompany: boolean = false;
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
+  isSubmitting: boolean = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private usersService: UsersService
+  ) {}
 
   ngOnInit() {
     // Assicura che il form sia sempre vuoto all'inizializzazione
@@ -125,7 +131,8 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit() {
-    // Validazione password
+    if (this.isSubmitting) return;
+
     if (this.password !== this.confirmPassword) {
       alert('Le password non corrispondono!');
       return;
@@ -136,47 +143,47 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Genera codice univoco
-    const userCode = this.generateUniqueCode();
-
-    // Determina società
     let finalCompany = this.company;
     if (this.company === 'Altra') {
       finalCompany = this.otherCompany;
     }
 
-    // Crea oggetto utente
-    const newUser = {
-      id: Date.now(),
+    const newUser: User = {
+      id: 0,
       firstName: this.firstName,
       lastName: this.lastName,
       email: this.email,
       phone: this.phone,
       birthdate: this.birthdate,
       gender: this.gender,
-      company: finalCompany,
-      dichiarazioneManleva: this.dichiarazioneManleva,
-      userCode: userCode,
-      password: this.password,
+      company: finalCompany ?? '',
+      userCode: 'ISCRITTO',
+      matricola: '',
       status: 'Attivo',
-      registrationDate: new Date().toISOString()
+      password: this.password,
+      dichiarazioneManleva: this.dichiarazioneManleva
     };
 
-    // Salva in localStorage (lista normalizzata: solo dichiarazioneManleva, niente certificatoMedico)
-    const existingUsers = this.getRegisteredUsersNormalized();
-    existingUsers.push(newUser);
-    localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-
-    console.log('Dati utente:', newUser);
-
-    // Mostra messaggio di successo
-    const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nCodice Utente: ${userCode}\nSocietà: ${finalCompany}\n\nVuoi visualizzare la lista utenti?`;
-    
-    if (confirm(message)) {
-      this.router.navigate(['/backoffice/gestisci-utenti']);
-    } else {
-      this.resetForm();
-    }
+    this.isSubmitting = true;
+    this.usersService.createUser(newUser).subscribe({
+      next: (created) => {
+        this.isSubmitting = false;
+        const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nSocietà: ${finalCompany}\n\nVuoi visualizzare la lista utenti?`;
+        if (confirm(message)) {
+          this.router.navigate(['/backoffice/gestisci-utenti']);
+        } else {
+          this.resetForm();
+        }
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        console.error('Errore registrazione utente:', err);
+        const msg = err?.error?.message || (err?.status === 409 || err?.status === 400)
+          ? 'Questa email è già registrata.'
+          : 'Errore durante la registrazione. Riprova più tardi.';
+        alert(msg);
+      }
+    });
   }
 
   scrollToTop() {

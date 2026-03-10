@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BookingsService } from './bookings.service';
 import { Booking } from '../../shared/models/booking-data.interface';
+import { UsersService } from '../gestisci-utenti/users.service';
+import { User } from '../../shared/models/user-data.interface';
 
 declare var FullCalendar: any;
 declare var bootstrap: any;
@@ -27,24 +29,29 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
   selectedDateForBooking: Date | null = null;
   currentViewingEvent: any = null;
   isLoading: boolean = true;
+  /** Utenti caricati dall'API per il select "Aggiungi prenotazione" */
+  usersList: User[] = [];
+  /** Evita invii multipli di Conferma prenotazione */
+  isSubmittingBooking: boolean = false;
 
-  constructor(private bookingsService: BookingsService) {}
-
-  users = [
-    { id: '1', name: 'Mario Rossi', company: 'Acme Corporation' },
-    { id: '2', name: 'Laura Bianchi', company: 'TechSolutions S.r.l.' },
-    { id: '3', name: 'Giovanni Verdi', company: 'Global Industries' },
-    { id: '4', name: 'Anna Ferrari', company: 'Innovation Labs' },
-    { id: '5', name: 'Paolo Neri', company: 'Digital Services' },
-    { id: '6', name: 'Maria Russo', company: 'Acme Corporation' },
-    { id: '7', name: 'Luca Colombo', company: 'TechSolutions S.r.l.' },
-    { id: '8', name: 'Giulia Esposito', company: 'Global Industries' }
-  ];
+  constructor(
+    private bookingsService: BookingsService,
+    private usersService: UsersService
+  ) {}
 
 
   ngOnInit() {
     // Carica la capacità massima da localStorage
     this.loadMaxCapacity();
+    // Carica utenti dall'API per il select crea prenotazione
+    this.usersService.getUsers().subscribe({
+      next: (list) => {
+        this.usersList = list || [];
+      },
+      error: () => {
+        this.usersList = [];
+      }
+    });
     // Carica i dati delle prenotazioni dal microservizio
     this.loadBookings();
     
@@ -660,8 +667,19 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
     const dateISO = this.formatDateISO(date);
     this.bookingsService.getBookingsByDate(dateISO).subscribe({
       next: (dayBookings) => {
-        // Filtro aggiuntivo per sicurezza
-        const filteredBookings = dayBookings.filter(booking => {
+        // Unisci con le prenotazioni già in memoria per questo giorno (es. appena create)
+        const localForDay = this.allBookings.filter(b => b.start && b.start.startsWith(dateISO));
+        const seenIds = new Set(dayBookings.map(b => b.id));
+        let merged: Booking[] = [...dayBookings];
+        localForDay.forEach(b => {
+          if (b.id && !seenIds.has(b.id)) {
+            merged.push({ ...b, extendedProps: { ...b.extendedProps, user: b.user } });
+            seenIds.add(b.id);
+          }
+        });
+        merged.sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+
+        const filteredBookings = merged.filter(booking => {
           const bookingDate = this.formatDateISO(new Date(booking.start));
           return bookingDate === dateISO;
         });
@@ -890,54 +908,48 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
         bookingsToRemove.forEach((booking: Booking) => {
           this.bookingsService.deleteBooking(booking.id).subscribe({
             next: () => {
-              // Rimuovi localmente
               const indexAll = this.allBookings.findIndex(b => b.id === booking.id);
-              if (indexAll > -1) {
-                this.allBookings.splice(indexAll, 1);
-              }
+              if (indexAll > -1) this.allBookings.splice(indexAll, 1);
               const indexBookings = this.bookings.findIndex(b => b.id === booking.id);
-              if (indexBookings > -1) {
-                this.bookings.splice(indexBookings, 1);
-              }
-            }
+              if (indexBookings > -1) this.bookings.splice(indexBookings, 1);
+            },
+            error: () => alert('Errore durante l\'eliminazione della prenotazione.')
           });
         });
+        this.refreshCalendar();
+        const modalElement = document.getElementById('viewBookingModal');
+        if (modalElement) {
+          const BootstrapModal = (window as any).bootstrap?.Modal;
+          if (BootstrapModal) {
+            const modal = BootstrapModal.getInstance(modalElement);
+            if (modal) modal.hide();
+          }
+        }
+        alert('Prenotazione cancellata con successo!');
+        this.currentViewingEvent = null;
       } else {
         // Elimina la prenotazione singola
         this.bookingsService.deleteBooking(bookingId).subscribe({
           next: () => {
-            // Rimuovi localmente
             const indexAll = this.allBookings.findIndex(b => b.id === bookingId);
-            if (indexAll > -1) {
-              this.allBookings.splice(indexAll, 1);
-            }
+            if (indexAll > -1) this.allBookings.splice(indexAll, 1);
             const indexBookings = this.bookings.findIndex(b => b.id === bookingId);
-            if (indexBookings > -1) {
-              this.bookings.splice(indexBookings, 1);
-            }
-            
-            // Aggiorna il calendario
+            if (indexBookings > -1) this.bookings.splice(indexBookings, 1);
             this.refreshCalendar();
-          }
+            const modalEl = document.getElementById('viewBookingModal');
+            if (modalEl) {
+              const BootstrapModal = (window as any).bootstrap?.Modal;
+              if (BootstrapModal) {
+                const modal = BootstrapModal.getInstance(modalEl);
+                if (modal) modal.hide();
+              }
+            }
+            alert('Prenotazione cancellata con successo!');
+            this.currentViewingEvent = null;
+          },
+          error: () => alert('Errore durante l\'eliminazione della prenotazione.')
         });
       }
-
-      // Aggiorna il calendario
-      this.refreshCalendar();
-
-      const modalElement = document.getElementById('viewBookingModal');
-      if (modalElement) {
-        const BootstrapModal = (window as any).bootstrap?.Modal;
-        if (BootstrapModal) {
-          const modal = BootstrapModal.getInstance(modalElement);
-          if (modal) {
-            modal.hide();
-          }
-        }
-      }
-
-      alert('Prenotazione cancellata con successo!');
-      this.currentViewingEvent = null;
     }
   }
 
@@ -957,6 +969,8 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
   }
 
   confirmBooking() {
+    if (this.isSubmittingBooking) return;
+
     const userSelect = document.getElementById('bookingUser') as HTMLSelectElement;
     const dateInput = document.getElementById('bookingDate') as HTMLInputElement;
     const startTimeInput = document.getElementById('bookingStartTime') as HTMLInputElement;
@@ -1015,14 +1029,15 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
       backgroundColor: '#405189',
       borderColor: '#405189',
       extendedProps: {
-        user: userName
+        user: userName,
+        utenteId: Number(userId)
       }
     };
 
-    // Crea la prenotazione tramite il servizio
+    this.isSubmittingBooking = true;
     this.bookingsService.createBooking(newEvent).subscribe({
       next: (response) => {
-        // Aggiungi la nuova prenotazione agli array locali
+        this.isSubmittingBooking = false;
         this.bookings.push(response.data);
         this.allBookings.push({
           id: response.data.id,
@@ -1042,12 +1057,12 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
           }
         }
 
-        // Aggiorna il calendario
         this.refreshCalendar();
 
         alert(`✓ Prenotazione creata con successo!\n\nUtente: ${userName}\nData: ${new Date(date).toLocaleDateString('it-IT')}\nOrario: ${startTime} - ${endTime}`);
       },
       error: (error) => {
+        this.isSubmittingBooking = false;
         alert('Errore nella creazione della prenotazione. Riprova.');
       }
     });
@@ -1061,6 +1076,12 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
   closeModal(modalId: string) {
     const modalElement = document.getElementById(modalId);
     if (!modalElement) return;
+
+    // Evita il warning aria-hidden: sposta il focus fuori dalla modale prima di nasconderla
+    const active = document.activeElement as HTMLElement;
+    if (active && modalElement.contains(active)) {
+      active.blur();
+    }
 
     const BootstrapModal = (window as any).bootstrap?.Modal;
     if (BootstrapModal) {

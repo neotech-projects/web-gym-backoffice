@@ -2,23 +2,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { Operator, OperatorsResponse, OperatorResponse } from '../../shared/models/operator-data.interface';
+import { Operator, UtenteBackend } from '../../shared/models/operator-data.interface';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OperatorsService {
-  // URL del microservizio - usa URL relativo quando il proxy è configurato
-  // In produzione sostituire con l'URL reale del microservizio
-  private readonly API_URL = '/api/operators';
-  
-  // URL per il mock locale (usato quando il microservizio non è disponibile)
+  // Come dashboard: environment.apiUrl + path (/api/operatori)
+  private get API_URL(): string {
+    const base = environment.apiUrl;
+    return base ? `${base}/api/operatori` : '/api/operatori';
+  }
+
   private readonly MOCK_URL = '/assets/mock/operators.json';
-  
-  // Flag per tracciare se il server è disponibile
   private serverAvailable: boolean = true;
   private lastCheck: number = 0;
-  private readonly CHECK_INTERVAL = 60000; // Controlla ogni minuto
+  private readonly CHECK_INTERVAL = 60000;
 
   constructor(private http: HttpClient) {}
 
@@ -69,42 +69,67 @@ export class OperatorsService {
   }
 
   /**
-   * Recupera la lista degli operatori dal microservizio
-   * In caso di errore, fallback al mock locale
+   * Recupera la lista degli operatori da ms-gym-backoffice (GET /api/operatori).
+   * Il backend restituisce List<Utente> = array senza wrapper.
    */
   getOperators(): Observable<Operator[]> {
-    // Se il server non è disponibile, usa direttamente il mock
     if (!this.isServerAvailable()) {
       return this.getMockOperators();
     }
 
-    return this.http.get<OperatorsResponse>(this.API_URL, {
-      // Aggiungi headers per evitare problemi di CORS
-      headers: {
-        'Accept': 'application/json'
-      }
+    return this.http.get<UtenteBackend[]>(this.API_URL, {
+      headers: { 'Accept': 'application/json' }
     }).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          // Formatta le date di nascita per la visualizzazione
-          return response.data.map(operator => ({
-            ...operator,
-            birthdateDisplay: operator.birthdate ? new Date(operator.birthdate).toLocaleDateString('it-IT') : undefined
-          }));
-        }
-        throw new Error(response.message || 'Invalid response format');
+      map(list => {
+        this.serverAvailable = true;
+        return (list || []).map(u => this.mapUtenteToOperator(u));
       }),
       catchError((error: HttpErrorResponse) => {
-        // Se è un 404 e il proxy non funziona, usa il mock senza loggare l'errore
         if (error.status === 404) {
           this.serverAvailable = false;
-          // Non loggare l'errore 404 se il fallback funziona
           return this.getMockOperators();
         }
         return this.handleConnectionError(error, () => this.getMockOperators());
       })
     );
+  }
+
+  /** Mappa il DTO Utente del backend nel modello Operator usato dalla UI */
+  private mapUtenteToOperator(u: UtenteBackend): Operator {
+    const birthdate = u.dataNascita ? (typeof u.dataNascita === 'string' ? u.dataNascita : (u.dataNascita as any)) : '';
+    return {
+      id: u.id ?? 0,
+      firstName: u.nome ?? '',
+      lastName: u.cognome ?? '',
+      email: u.email ?? '',
+      phone: u.telefono ?? '',
+      birthdate,
+      birthdateDisplay: birthdate ? new Date(birthdate).toLocaleDateString('it-IT') : undefined,
+      gender: u.sesso ?? '',
+      role: u.tipoUtente ?? 'OPERATORE',
+      status: u.stato ?? '',
+      registrationDate: u.creato,
+      societaId: u.societaId,
+      societaNome: u.societaNome,
+      matricola: u.matricola
+    };
+  }
+
+  /** Mappa Operator (UI) in UtenteBackend per POST/PUT */
+  private mapOperatorToUtente(o: Partial<Operator>): UtenteBackend {
+    return {
+      id: typeof o.id === 'number' ? o.id : undefined,
+      nome: o.firstName ?? '',
+      cognome: o.lastName ?? '',
+      email: o.email ?? '',
+      telefono: o.phone ?? undefined,
+      dataNascita: o.birthdate || undefined,
+      sesso: o.gender || undefined,
+      stato: o.status || undefined,
+      societaId: o.societaId,
+      matricola: o.matricola,
+      password: o.password
+    };
   }
 
   /**
@@ -128,78 +153,65 @@ export class OperatorsService {
   }
 
   /**
-   * Crea un nuovo operatore
+   * Crea un nuovo operatore (POST /api/operatori). Body in formato Utente; risposta Utente.
    */
   createOperator(operator: Partial<Operator>): Observable<Operator> {
     if (!this.isServerAvailable()) {
-      // Simula creazione locale
       return of({ ...operator, id: Date.now() } as Operator);
     }
 
-    return this.http.post<OperatorResponse>(this.API_URL, operator).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return {
-            ...response.data,
-            birthdateDisplay: response.data.birthdate ? new Date(response.data.birthdate).toLocaleDateString('it-IT') : undefined
-          };
-        }
-        throw new Error(response.message || 'Invalid response format');
+    const body = this.mapOperatorToUtente(operator);
+    return this.http.post<UtenteBackend>(this.API_URL, body).pipe(
+      map(created => {
+        this.serverAvailable = true;
+        return this.mapUtenteToOperator(created);
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula la creazione locale
-        return of({ ...operator, id: Date.now() } as Operator);
+        return this.handleConnectionError(error, () =>
+          of({ ...operator, id: Date.now() } as Operator)
+        );
       })
     );
   }
 
   /**
-   * Aggiorna un operatore esistente
+   * Aggiorna un operatore (PUT /api/operatori/{id}). Body in formato Utente; risposta Utente.
    */
   updateOperator(operatorId: number | string, operator: Partial<Operator>): Observable<Operator> {
     if (!this.isServerAvailable()) {
-      // Simula aggiornamento locale
       return of({ ...operator, id: operatorId } as Operator);
     }
 
-    return this.http.put<OperatorResponse>(`${this.API_URL}/${operatorId}`, operator).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          this.serverAvailable = true;
-          return {
-            ...response.data,
-            birthdateDisplay: response.data.birthdate ? new Date(response.data.birthdate).toLocaleDateString('it-IT') : undefined
-          };
-        }
-        throw new Error(response.message || 'Invalid response format');
+    const body = this.mapOperatorToUtente(operator);
+    return this.http.put<UtenteBackend>(`${this.API_URL}/${operatorId}`, body).pipe(
+      map(updated => {
+        this.serverAvailable = true;
+        return this.mapUtenteToOperator(updated);
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula l'aggiornamento locale
-        return of({ ...operator, id: operatorId } as Operator);
+        return this.handleConnectionError(error, () =>
+          of({ ...operator, id: operatorId } as Operator)
+        );
       })
     );
   }
 
   /**
-   * Elimina un operatore
+   * Elimina un operatore (DELETE /api/operatori/{id}). Backend restituisce 204 No Content.
    */
   deleteOperator(operatorId: number | string): Observable<boolean> {
     if (!this.isServerAvailable()) {
-      // Simula eliminazione locale
       return of(true);
     }
 
-    return this.http.delete<{ success: boolean; message?: string }>(`${this.API_URL}/${operatorId}`).pipe(
+    return this.http.delete<void>(`${this.API_URL}/${operatorId}`, { observe: 'response' }).pipe(
       map(response => {
         this.serverAvailable = true;
-        return response.success;
+        return response.status >= 200 && response.status < 300;
       }),
       catchError((error: HttpErrorResponse) => {
-        // In caso di errore, simula l'eliminazione locale
-        return of(true);
+        return this.handleConnectionError(error, () => of(true));
       })
     );
   }
 }
-

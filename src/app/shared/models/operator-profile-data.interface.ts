@@ -11,6 +11,18 @@ export interface OperatorProfile {
   avatar?: string;
 }
 
+/** Body PUT /api/operatori/profilo */
+export interface ModificaProfiloRequest {
+  email?: string;
+  telefono?: string;
+}
+
+/** Body POST /api/operatori/profilo/cambio-password */
+export interface CambioPasswordRequest {
+  vecchiaPassword: string;
+  nuovaPassword: string;
+}
+
 export interface OperatorProfileResponse {
   success: boolean;
   data: OperatorProfile;

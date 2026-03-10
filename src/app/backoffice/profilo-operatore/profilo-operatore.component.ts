@@ -107,6 +107,7 @@ export class ProfiloOperatoreComponent implements OnInit {
     }
 
     const updatedProfile: Partial<OperatorProfile> = {
+      id: this.profile!.id,
       firstName: editFirstNameEl.value,
       lastName: editLastNameEl.value,
       email: editEmailEl.value,
@@ -139,6 +140,26 @@ export class ProfiloOperatoreComponent implements OnInit {
         alert('Errore nell\'aggiornamento del profilo. Riprova più tardi.');
       }
     });
+  }
+
+  /**
+   * Verifica che la nuova password rispetti tutti i requisiti.
+   * Ritorna un messaggio di errore o null se valida.
+   */
+  private validatePasswordRequirements(password: string): string | null {
+    if (password.length < 8) {
+      return 'La password deve essere di almeno 8 caratteri.';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'La password deve contenere almeno una lettera maiuscola.';
+    }
+    if (!/\d/.test(password)) {
+      return 'La password deve contenere almeno un numero.';
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      return 'La password deve contenere almeno un carattere speciale (!@#$%^&*).';
+    }
+    return null;
   }
 
   clearPasswordFields() {
@@ -175,12 +196,13 @@ export class ProfiloOperatoreComponent implements OnInit {
       return;
     }
 
-    if (newPassword.length < 8) {
-      alert('La password deve essere di almeno 8 caratteri!');
+    const passwordError = this.validatePasswordRequirements(newPassword);
+    if (passwordError) {
+      alert(passwordError);
       return;
     }
 
-    this.profileService.changePassword(oldPassword, newPassword).subscribe({
+    this.profileService.changePassword(this.profile!.id, oldPassword, newPassword).subscribe({
       next: (success) => {
         if (success) {
           // Pulisci i campi
