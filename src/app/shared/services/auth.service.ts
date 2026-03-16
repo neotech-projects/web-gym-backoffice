@@ -1,7 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Operator } from '../models/operator-data.interface';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, map, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+
+/** Risposta dell'API di login del backoffice */
+export interface LoginApiResponse {
+  id: number;
+  nome: string;
+  cognome: string;
+  email: string;
+  token: string;
+}
 
 export interface AuthUser {
   id: number | string;
@@ -9,6 +20,7 @@ export interface AuthUser {
   lastName: string;
   email: string;
   role: string;
+  token: string;
 }
 
 @Injectable({
@@ -19,66 +31,37 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<AuthUser | null>(this.getStoredUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private router: Router) {}
+  private get loginUrl(): string {
+    return `${environment.apiUrl}/api/auth/login`;
+  }
+
+  constructor(
+    private router: Router,
+    private http: HttpClient
+  ) {}
 
   /**
-   * Effettua il login
+   * Effettua il login: chiama l'API backoffice e salva id, cognome, token (e nome, email) in localStorage.
    */
   login(email: string, password: string): Observable<boolean> {
-    // Simula autenticazione - in produzione fare chiamata API
-    // Per ora usiamo dati mock hardcoded per test
-    const mockOperators: { email: string; password: string; operator: AuthUser }[] = [
-      {
-        email: 'alessandro.romano@palestra.it',
-        password: 'admin123',
-        operator: {
-          id: 5,
-          firstName: 'Alessandro',
-          lastName: 'Romano',
-          email: 'alessandro.romano@palestra.it',
-          role: 'Admin'
-        }
-      },
-      {
-        email: 'marco.bianchi@palestra.it',
-        password: 'operatore123',
-        operator: {
-          id: 1,
-          firstName: 'Marco',
-          lastName: 'Bianchi',
-          email: 'marco.bianchi@palestra.it',
-          role: 'Operatore'
-        }
-      },
-      {
-        email: 'sara.rossi@palestra.it',
-        password: 'operatore123',
-        operator: {
-          id: 2,
-          firstName: 'Sara',
-          lastName: 'Rossi',
-          email: 'sara.rossi@palestra.it',
-          role: 'Operatore'
-        }
-      }
-    ];
-
-    const foundOperator = mockOperators.find(
-      op => op.email.toLowerCase() === email.toLowerCase() && op.password === password
+    return this.http.post<LoginApiResponse>(this.loginUrl, { email, password }).pipe(
+      map((res) => {
+        const user: AuthUser = {
+          id: res.id,
+          firstName: res.nome ?? '',
+          lastName: res.cognome ?? '',
+          email: res.email ?? '',
+          role: 'Operatore',
+          token: res.token ?? ''
+        };
+        this.setCurrentUser(user);
+        return true;
+      }),
+      catchError((err) => {
+        if (err?.status === 403) return throwError(() => err);
+        return of(false);
+      })
     );
-
-    if (foundOperator) {
-      this.setCurrentUser(foundOperator.operator);
-      return new Observable(observer => {
-        observer.next(true);
-        observer.complete();
-      });
-    }
-
-    return new Observable(observer => {
-      observer.next(false);
-      observer.complete();
-    });
   }
 
   /**
@@ -129,12 +112,16 @@ export class AuthService {
   }
 
   /**
-   * Recupera l'utente salvato in localStorage
+   * Recupera l'utente salvato in localStorage (id, cognome, token, ecc.).
+   * Se manca il token (login vecchio) ritorna null.
    */
   private getStoredUser(): AuthUser | null {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : null;
+      if (!stored) return null;
+      const parsed = JSON.parse(stored) as AuthUser;
+      if (!parsed?.token) return null;
+      return parsed;
     } catch {
       return null;
     }

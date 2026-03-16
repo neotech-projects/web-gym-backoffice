@@ -47,8 +47,12 @@ export class LoginComponent {
           this.errorMessage = 'Credenziali non valide. Verifica email e password.';
         }
       },
-      error: () => {
-        this.errorMessage = 'Errore durante il login. Riprova più tardi.';
+      error: (err) => {
+        if (err?.status === 403) {
+          this.errorMessage = 'Solo operatori e amministratori possono accedere al backoffice.';
+        } else {
+          this.errorMessage = 'Errore durante il login. Riprova più tardi.';
+        }
       }
     });
   }

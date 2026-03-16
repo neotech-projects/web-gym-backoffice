@@ -92,15 +92,6 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Dichiarazione Manleva</label>
-                                                    <div class="form-check form-switch form-switch-md mt-2" dir="ltr">
-                                                        <input type="checkbox" class="form-check-input" id="dichiarazioneManleva" name="dichiarazioneManleva" [(ngModel)]="dichiarazioneManleva">
-                                                        <label class="form-check-label" for="dichiarazioneManleva">Dichiarazione Manleva presente</label>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <div class="row" *ngIf="showOtherCompany">
@@ -116,13 +107,19 @@
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                                                    <div class="position-relative">
-                                                        <input [type]="showPassword ? 'text' : 'password'" class="form-control pe-5" id="password" placeholder="Inserisci password" [(ngModel)]="password" name="password" autocomplete="new-password" required>
-                                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('password')">
-                                                            <i [class]="showPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
+                                                    <div class="input-group">
+                                                        <input [type]="showPassword ? 'text' : 'password'" class="form-control font-monospace pe-5" id="password" placeholder="Inserisci o genera password" [(ngModel)]="password" name="password" autocomplete="new-password" required>
+                                                        <button type="button" class="btn btn-outline-secondary" (click)="togglePassword('password')" title="Mostra/Nascondi">
+                                                            <i [class]="showPassword ? 'ri-eye-off-fill' : 'ri-eye-fill'"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-primary" (click)="regeneratePassword()" title="Genera password automatica">
+                                                            <i class="ri-refresh-line me-1"></i> Genera
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success" (click)="copyPasswordToClipboard()" title="Copia negli appunti">
+                                                            <i class="ri-file-copy-line"></i>
                                                         </button>
                                                     </div>
-                                                    <small class="text-muted">Min. 8 caratteri, una maiuscola, un numero</small>
+                                                    <small class="text-muted">Min. 8 caratteri, una maiuscola, un numero. Oppure usa «Genera» per una password valida.</small>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -130,7 +127,7 @@
                                                     <label for="confirmPassword" class="form-label">Conferma Password <span class="text-danger">*</span></label>
                                                     <div class="position-relative">
                                                         <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control pe-5" id="confirmPassword" placeholder="Conferma password" [(ngModel)]="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
-                                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('confirmPassword')">
+                                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" (click)="togglePassword('confirmPassword')" title="Mostra/Nascondi">
                                                             <i [class]="showConfirmPassword ? 'ri-eye-off-fill align-middle' : 'ri-eye-fill align-middle'"></i>
                                                         </button>
                                                     </div>

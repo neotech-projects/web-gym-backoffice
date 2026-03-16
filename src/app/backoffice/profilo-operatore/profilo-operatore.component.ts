@@ -34,7 +34,7 @@ export class ProfiloOperatoreComponent implements OnInit {
   loadProfile() {
     this.isLoading = true;
     const currentUser = this.authService.getCurrentUser();
-    
+
     if (!currentUser || !currentUser.id) {
       console.error('Utente corrente non trovato');
       this.isLoading = false;
@@ -43,8 +43,28 @@ export class ProfiloOperatoreComponent implements OnInit {
 
     this.profileService.getProfile(currentUser.id).subscribe({
       next: (profile) => {
-        this.profile = profile;
-        this.editProfile = { ...profile };
+        // Se l'API restituisce dati di un altro utente (es. stesso id nel DB = altro nome),
+        // mostriamo nome/cognome/email dalla sessione (chi è loggato) per coerenza
+        const identityMismatch =
+          profile.firstName !== currentUser.firstName ||
+          profile.lastName !== currentUser.lastName ||
+          (profile.email && profile.email !== currentUser.email);
+        if (identityMismatch) {
+          this.profile = {
+            ...profile,
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+            email: currentUser.email,
+            phone: profile.phone ?? '',
+            birthdate: profile.birthdate ?? '',
+            birthdateDisplay: profile.birthdateDisplay ?? profile.birthdate ?? '',
+            gender: profile.gender ?? '',
+            role: currentUser.role ?? profile.role
+          };
+        } else {
+          this.profile = profile;
+        }
+        this.editProfile = { ...this.profile };
         this.isLoading = false;
         this.updateUI();
       },
@@ -202,20 +222,24 @@ export class ProfiloOperatoreComponent implements OnInit {
       return;
     }
 
-    this.profileService.changePassword(this.profile!.id, oldPassword, newPassword).subscribe({
+    const utenteId = this.authService.getCurrentUser()?.id ?? this.profile?.id;
+    if (utenteId == null) {
+      alert('Sessione non valida. Esegui di nuovo il login.');
+      return;
+    }
+
+    this.profileService.changePassword(utenteId, oldPassword, newPassword).subscribe({
       next: (success) => {
-        if (success) {
-          // Pulisci i campi
-          this.clearPasswordFields();
-          
-          alert('✓ Password cambiata con successo!');
-        } else {
-          alert('Errore nel cambio password. Riprova più tardi.');
-        }
+        this.clearPasswordFields();
+        alert('✓ Password cambiata con successo!');
       },
       error: (error) => {
-        console.error('Errore nel cambio password:', error);
-        alert('Errore nel cambio password. Riprova più tardi.');
+        if (error?.status === 401) {
+          alert('La vecchia password non è corretta.');
+        } else {
+          console.error('Errore nel cambio password:', error);
+          alert('Errore nel cambio password. Riprova più tardi.');
+        }
       }
     });
   }

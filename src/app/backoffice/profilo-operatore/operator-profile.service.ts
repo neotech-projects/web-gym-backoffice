@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { OperatorProfile } from '../../shared/models/operator-profile-data.interface';
 import { UtenteBackend } from '../../shared/models/operator-data.interface';
@@ -246,10 +246,6 @@ export class OperatorProfileService {
    * POST /api/operatori/profilo/cambio-password?utenteId=X, body { vecchiaPassword, nuovaPassword }.
    */
   changePassword(operatorId: number | string, oldPassword: string, newPassword: string): Observable<boolean> {
-    if (!this.isServerAvailable()) {
-      return of(true);
-    }
-
     const params = { utenteId: String(operatorId) };
     const body = { vecchiaPassword: oldPassword, nuovaPassword: newPassword };
     return this.http.post<void>(`${this.API_BASE}/profilo/cambio-password`, body, { params, observe: 'response' }).pipe(
@@ -258,11 +254,8 @@ export class OperatorProfileService {
         return response.status >= 200 && response.status < 300;
       }),
       catchError((error: HttpErrorResponse) => {
-        // 401 = vecchia password non valida, propagato al componente
-        if (error.status === 401) {
-          return of(false);
-        }
-        return this.handleConnectionError(error, () => of(true));
+        this.serverAvailable = error.status == null || error.status === 0;
+        return throwError(() => error);
       })
     );
   }

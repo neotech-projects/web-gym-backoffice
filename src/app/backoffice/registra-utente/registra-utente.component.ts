@@ -21,7 +21,6 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   gender: string = '';
   company: string = '';
   otherCompany: string = '';
-  dichiarazioneManleva: boolean = false;
   password: string = '';
   confirmPassword: string = '';
   showOtherCompany: boolean = false;
@@ -52,11 +51,9 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   }
 
   private forceResetFormFields() {
-    // Forza il reset dei campi email e password direttamente nel DOM
     const emailInput = document.getElementById('email') as HTMLInputElement;
     const passwordInput = document.getElementById('password') as HTMLInputElement;
     const confirmPasswordInput = document.getElementById('confirmPassword') as HTMLInputElement;
-    
     if (emailInput) {
       emailInput.value = '';
       emailInput.setAttribute('value', '');
@@ -84,6 +81,26 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
       const { certificatoMedico, ...rest } = u;
       return { ...rest, dichiarazioneManleva: u.dichiarazioneManleva ?? certificatoMedico };
     });
+  }
+
+  /**
+   * Genera una password casuale che rispetta i requisiti: min 8 caratteri, almeno una maiuscola, una minuscola e un numero.
+   */
+  generatePassword(): string {
+    const minuscole = 'abcdefghijklmnopqrstuvwxyz';
+    const maiuscole = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numeri = '0123456789';
+    const tutti = minuscole + maiuscole + numeri;
+    const len = 12;
+    let pwd = '';
+    pwd += minuscole.charAt(Math.floor(Math.random() * minuscole.length));
+    pwd += maiuscole.charAt(Math.floor(Math.random() * maiuscole.length));
+    pwd += numeri.charAt(Math.floor(Math.random() * numeri.length));
+    for (let i = pwd.length; i < len; i++) {
+      pwd += tutti.charAt(Math.floor(Math.random() * tutti.length));
+    }
+    // Mescola i caratteri
+    return pwd.split('').sort(() => Math.random() - 0.5).join('');
   }
 
   generateUniqueCode(): string {
@@ -115,6 +132,20 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
     }
   }
 
+  regeneratePassword() {
+    this.password = this.generatePassword();
+    this.confirmPassword = this.password;
+  }
+
+  copyPasswordToClipboard() {
+    if (!this.password) return;
+    navigator.clipboard.writeText(this.password).then(() => {
+      alert('Password copiata negli appunti.');
+    }).catch(() => {
+      alert('Impossibile copiare la password.');
+    });
+  }
+
   resetForm() {
     this.firstName = '';
     this.lastName = '';
@@ -124,7 +155,6 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
     this.gender = '';
     this.company = '';
     this.otherCompany = '';
-    this.dichiarazioneManleva = false;
     this.password = '';
     this.confirmPassword = '';
     this.showOtherCompany = false;
@@ -160,15 +190,14 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
       userCode: 'ISCRITTO',
       matricola: '',
       status: 'Attivo',
-      password: this.password,
-      dichiarazioneManleva: this.dichiarazioneManleva
+      password: this.password
     };
 
     this.isSubmitting = true;
     this.usersService.createUser(newUser).subscribe({
       next: (created) => {
         this.isSubmitting = false;
-        const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nSocietà: ${finalCompany}\n\nVuoi visualizzare la lista utenti?`;
+        const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nSocietà: ${finalCompany}\n\nPassword (da comunicare all'utente):\n${this.password}\n\nVuoi visualizzare la lista utenti?`;
         if (confirm(message)) {
           this.router.navigate(['/backoffice/gestisci-utenti']);
         } else {
