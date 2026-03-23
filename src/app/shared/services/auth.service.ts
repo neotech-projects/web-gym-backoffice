@@ -12,6 +12,7 @@ export interface LoginApiResponse {
   cognome: string;
   email: string;
   token: string;
+  tipoUtente?: string;
 }
 
 export interface AuthUser {
@@ -51,7 +52,7 @@ export class AuthService {
           firstName: res.nome ?? '',
           lastName: res.cognome ?? '',
           email: res.email ?? '',
-          role: 'Operatore',
+          role: (res.tipoUtente && res.tipoUtente.trim()) ? res.tipoUtente.trim() : 'Operatore',
           token: res.token ?? ''
         };
         this.setCurrentUser(user);
@@ -81,19 +82,19 @@ export class AuthService {
   }
 
   /**
-   * Verifica se l'utente è admin
+   * Verifica se l'utente è admin (case-insensitive: Admin, ADMIN, admin).
    */
   isAdmin(): boolean {
-    const user = this.currentUserSubject.value;
-    return user?.role === 'Admin';
+    const role = (this.currentUserSubject.value?.role ?? '').trim().toLowerCase();
+    return role === 'admin';
   }
 
   /**
-   * Verifica se l'utente è operatore
+   * Verifica se l'utente è operatore (case-insensitive: Operatore, OPERATORE, operatore).
    */
   isOperator(): boolean {
-    const user = this.currentUserSubject.value;
-    return user?.role === 'Operatore';
+    const role = (this.currentUserSubject.value?.role ?? '').trim().toLowerCase();
+    return role === 'operatore';
   }
 
   /**

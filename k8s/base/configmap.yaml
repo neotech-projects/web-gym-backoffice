@@ -23,3 +23,6 @@ data:
             add_header Cache-Control "public, immutable";
         }
     }
+    
+  shelly.id: 90150680da54
+  shelly.key: M2VhYmQzdWlk7BADBCDCC9BADE6E2BC0AA081E7FE7E9DB253A2CDF99F7CCB95974FD15F45A4DFB7C2C8A6DD6C381

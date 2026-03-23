@@ -21,6 +21,11 @@ export class DashboardService {
     return base ? `${base}/api/prenotazioni` : '/api/prenotazioni';
   }
 
+  private get DASHBOARD_BASE_URL(): string {
+    const base = environment.apiUrl;
+    return base ? `${base}/api/dashboard` : '/api/dashboard';
+  }
+
   constructor(private http: HttpClient) {}
   
 
@@ -80,6 +85,13 @@ export class DashboardService {
     console.warn('Errore nella chiamata al microservizio:', error.message);
     this.serverAvailable = false;
     return useMock();
+  }
+
+  /**
+   * Chiama il backend per aprire la porta 
+   */
+  apriPorta(): Observable<void> {
+    return this.http.post<void>(`${this.DASHBOARD_BASE_URL}/apri-porta`, null);
   }
 
   /**

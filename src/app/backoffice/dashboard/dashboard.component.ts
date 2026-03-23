@@ -120,18 +120,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
 
   openDoor() {
-    // TODO: In produzione, chiamata API
     const btn = document.getElementById('openDoorBtn');
+    const originalText = btn?.innerHTML ?? '';
     if (btn) {
-      const originalText = btn.innerHTML;
       btn.setAttribute('disabled', 'true');
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Apertura...';
-      
-      setTimeout(() => {
+    }
+
+    this.dashboardService.apriPorta().subscribe({
+      next: () => {
         alert('✓ Porta aperta con successo!');
-        btn.removeAttribute('disabled');
-        btn.innerHTML = originalText;
-      }, 1500);
+        this.resetOpenDoorButton(btn, originalText);
+      },
+      error: (err) => {
+        console.error('Errore apertura porta:', err);
+        alert(err?.status === 401 ? 'Sessione scaduta. Effettua di nuovo il login.' : 'Errore nell\'apertura della porta. Riprova.');
+        this.resetOpenDoorButton(btn, originalText);
+      }
+    });
+  }
+
+  private resetOpenDoorButton(btn: HTMLElement | null, originalText: string) {
+    if (btn) {
+      btn.removeAttribute('disabled');
+      btn.innerHTML = originalText;
     }
   }
 

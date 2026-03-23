@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './backoffice/dashboard/dashboard.component';
-import { adminGuard } from './shared/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -52,8 +51,7 @@ export const routes: Routes = [
       },
       {
         path: 'registra-operatore',
-        loadComponent: () => import('./backoffice/registra-operatore/registra-operatore.component').then(m => m.RegistraOperatoreComponent),
-        canActivate: [adminGuard]
+        loadComponent: () => import('./backoffice/registra-operatore/registra-operatore.component').then(m => m.RegistraOperatoreComponent)
       },
       {
         path: 'visualizza-operatori',
