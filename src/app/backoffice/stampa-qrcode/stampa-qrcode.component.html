@@ -21,14 +21,26 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-center align-items-center flex-column" style="min-height: 70vh;">
-                    <div class="text-center mb-4">
-                        <img src="assets/images/qrcodeprova.png" alt="QR Code" class="img-fluid" style="max-width: 400px;">
+                    <div *ngIf="loading" class="text-center mb-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted mt-2 mb-0">Caricamento…</p>
+                    </div>
+                    <div *ngIf="!loading && error" class="alert alert-warning text-center" style="max-width: 480px;">
+                        {{ error }}
+                    </div>
+                    <div *ngIf="!loading && qrDataUrl" class="text-center mb-4">
+                        <img [src]="qrDataUrl" alt="QR Code ingresso" class="img-fluid" style="max-width: 400px;">
+                        <p *ngIf="urlNelQr" class="text-muted small mt-3 text-break px-2">{{ urlNelQr }}</p>
+                    </div>
+                    <div *ngIf="!loading && !qrDataUrl && !error" class="text-center text-muted mb-4">
+                        Nessun QR disponibile.
                     </div>
                     <div class="text-center">
-                        <button type="button" class="btn btn-soft-primary btn-lg" (click)="generaQRCode()">
+                        <button type="button" class="btn btn-soft-primary btn-lg" (click)="generaQRCode()" [disabled]="loading">
                             <i class="ri-qr-code-line me-2"></i> Genera QR Code
                         </button>
                     </div>
+                    
                 </div>
             </div>
         </div>
