@@ -42,7 +42,7 @@ export class LoginComponent {
     this.authService.login(this.username, this.password).subscribe({
       next: (success) => {
         if (success) {
-          this.router.navigate(['/backoffice/dashboard']);
+          this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage = 'Credenziali non valide. Verifica email e password.';
         }
