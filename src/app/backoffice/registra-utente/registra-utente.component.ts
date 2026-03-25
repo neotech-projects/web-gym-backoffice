@@ -199,7 +199,7 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
         this.isSubmitting = false;
         const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nSocietà: ${finalCompany}\n\nPassword (da comunicare all'utente):\n${this.password}\n\nVuoi visualizzare la lista utenti?`;
         if (confirm(message)) {
-          this.router.navigate(['/backoffice/gestisci-utenti']);
+          this.router.navigate(['/gestisci-utenti']);
         } else {
           this.resetForm();
         }

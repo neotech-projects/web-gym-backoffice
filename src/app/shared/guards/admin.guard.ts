@@ -12,7 +12,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
   }
 
   if (!authService.isAdmin()) {
-    router.navigate(['/backoffice/dashboard']);
+    router.navigate(['/dashboard']);
     return false;
   }
 

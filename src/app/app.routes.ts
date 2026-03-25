@@ -3,11 +3,6 @@ import { DashboardComponent } from './backoffice/dashboard/dashboard.component';
 
 export const routes: Routes = [
   {
-    path: '',
-    redirectTo: '/auth/login',
-    pathMatch: 'full'
-  },
-  {
     path: 'auth',
     children: [
       {
@@ -25,7 +20,7 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'backoffice',
+    path: '',
     loadComponent: () => import('./backoffice/layout/backoffice-layout.component').then(m => m.BackofficeLayoutComponent),
     children: [
       {

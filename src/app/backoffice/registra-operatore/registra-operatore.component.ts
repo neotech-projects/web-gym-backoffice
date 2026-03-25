@@ -38,7 +38,7 @@ export class RegistraOperatoreComponent implements OnInit {
     // Verifica che l'utente sia admin - controllo rigoroso
     if (!this.authService.isAdmin()) {
       alert('Accesso negato. Solo gli amministratori possono registrare nuovi operatori.');
-      this.router.navigate(['/backoffice/dashboard']);
+      this.router.navigate(['/dashboard']);
       return;
     }
   }
@@ -70,7 +70,7 @@ export class RegistraOperatoreComponent implements OnInit {
         const message = `✓ Operatore registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nRuolo: ${this.role}\n\nVuoi visualizzare la lista operatori?`;
         
         if (confirm(message)) {
-          this.router.navigate(['/backoffice/visualizza-operatori']);
+          this.router.navigate(['/visualizza-operatori']);
         } else {
           this.resetForm();
         }

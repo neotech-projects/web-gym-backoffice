@@ -7,7 +7,7 @@
                 <div class="d-flex">
                     <!-- LOGO -->
                     <div class="navbar-brand-box horizontal-logo">
-                        <a routerLink="/backoffice/dashboard" class="logo logo-dark">
+                        <a routerLink="/dashboard" class="logo logo-dark">
                             <span class="logo-sm">
                                 <img src="assets/images/logo-investire-bianco-removebg-preview.png" alt="" height="22">
                             </span>
@@ -16,7 +16,7 @@
                             </span>
                         </a>
 
-                        <a routerLink="/backoffice/dashboard" class="logo logo-light">
+                        <a routerLink="/dashboard" class="logo logo-light">
                             <span class="logo-sm">
                                 <img src="assets/images/logo-investire-bianco-removebg-preview.png" alt="" height="22">
                             </span>
@@ -128,7 +128,7 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                             <h6 class="dropdown-header">Benvenuto {{ currentUser?.firstName }}!</h6>
-                            <a class="dropdown-item" routerLink="/backoffice/profilo-operatore"><i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span class="align-middle">Il Mio Profilo</span></a>
+                            <a class="dropdown-item" routerLink="/profilo-operatore"><i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span class="align-middle">Il Mio Profilo</span></a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" (click)="logout()" style="cursor: pointer;"><i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> <span class="align-middle">Esci</span></a>
                         </div>
@@ -143,7 +143,7 @@
         <!-- LOGO -->
         <div class="navbar-brand-box">
             <!-- Dark Logo-->
-            <a routerLink="/backoffice/dashboard" class="logo logo-dark">
+            <a routerLink="/dashboard" class="logo logo-dark">
                 <span class="logo-sm">
                     <img src="assets/images/logo-investire-bianco-removebg-preview.png" alt="" height="22">
                 </span>
@@ -152,7 +152,7 @@
                 </span>
             </a>
             <!-- Light Logo-->
-            <a routerLink="/backoffice/dashboard" class="logo logo-light">
+            <a routerLink="/dashboard" class="logo logo-light">
                 <span class="logo-sm">
                     <img src="assets/images/logo-investire-bianco-removebg-preview.png" alt="" height="22">
                 </span>
@@ -168,13 +168,13 @@
                     <li class="menu-title"><span>Menu</span></li>
                     
                     <li class="nav-item">
-                        <a class="nav-link menu-link" routerLink="/backoffice/dashboard" routerLinkActive="active">
+                        <a class="nav-link menu-link" routerLink="/dashboard" routerLinkActive="active">
                             <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link menu-link" routerLink="/backoffice/gestisci-prenotazioni" routerLinkActive="active">
+                        <a class="nav-link menu-link" routerLink="/gestisci-prenotazioni" routerLinkActive="active">
                             <i class="ri-calendar-check-line"></i> <span>Gestisci Prenotazioni</span>
                         </a>
                     </li>
@@ -186,10 +186,10 @@
                         <div class="collapse menu-dropdown" id="sidebarUtenti">
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item" *ngIf="userIsAdmin">
-                                    <a routerLink="/backoffice/registra-utente" class="nav-link" routerLinkActive="active">Registrazione Utenti</a>
+                                    <a routerLink="/registra-utente" class="nav-link" routerLinkActive="active">Registrazione Utenti</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a routerLink="/backoffice/gestisci-utenti" class="nav-link" routerLinkActive="active">Visualizza Utenti</a>
+                                    <a routerLink="/gestisci-utenti" class="nav-link" routerLinkActive="active">Visualizza Utenti</a>
                                 </li>
                             </ul>
                         </div>
@@ -202,13 +202,13 @@
                         <div class="collapse menu-dropdown" id="sidebarBackoffice">
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item" *ngIf="userIsAdmin">
-                                    <a routerLink="/backoffice/registra-operatore" class="nav-link" routerLinkActive="active">Registra Operatore</a>
+                                    <a routerLink="/registra-operatore" class="nav-link" routerLinkActive="active">Registra Operatore</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a routerLink="/backoffice/visualizza-operatori" class="nav-link" routerLinkActive="active">Visualizza Operatori</a>
+                                    <a routerLink="/visualizza-operatori" class="nav-link" routerLinkActive="active">Visualizza Operatori</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a routerLink="/backoffice/profilo-operatore" class="nav-link" routerLinkActive="active">Profilo</a>
+                                    <a routerLink="/profilo-operatore" class="nav-link" routerLinkActive="active">Profilo</a>
                                 </li>
                             </ul>
                         </div>
@@ -221,13 +221,13 @@
                         <div class="collapse menu-dropdown" id="sidebarImpostazioni">
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item">
-                                    <a routerLink="/backoffice/stampa-qrcode" class="nav-link" routerLinkActive="active">Stampa QRCode</a>
+                                    <a routerLink="/stampa-qrcode" class="nav-link" routerLinkActive="active">Stampa QRCode</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a routerLink="/backoffice/imposta-margine-entrata" class="nav-link" routerLinkActive="active">Imposta Margine Entrata</a>
+                                    <a routerLink="/imposta-margine-entrata" class="nav-link" routerLinkActive="active">Imposta Margine Entrata</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a routerLink="/backoffice/imposta-capacita-massima" class="nav-link" routerLinkActive="active">Imposta Capacità Massima</a>
+                                    <a routerLink="/imposta-capacita-massima" class="nav-link" routerLinkActive="active">Imposta Capacità Massima</a>
                                 </li>
                             </ul>
                         </div>

@@ -74,7 +74,7 @@ export class RegistrazioneComponent {
         email: this.email,
         societa: this.societa
       });
-      this.router.navigate(['/backoffice/dashboard']);
+      this.router.navigate(['/dashboard']);
     }
   }
 
