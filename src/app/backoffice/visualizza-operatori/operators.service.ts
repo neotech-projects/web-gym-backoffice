@@ -18,7 +18,7 @@ export class OperatorsService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Recupera la lista degli operatori da ms-gym-backoffice (GET /api/operatori).
+   * Recuperaa la lista degli operatori da ms-gym-backoffice (GET /api/operatori).
    * Il backend restituisce List<Utente> = array senza wrapper.
    * In caso di errore HTTP l'errore viene propagato (nessun fallback a JSON locali).
    */
