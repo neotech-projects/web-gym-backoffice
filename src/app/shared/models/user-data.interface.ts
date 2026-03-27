@@ -9,6 +9,8 @@ export interface User {
   birthdateDisplay?: string;
   gender: string;
   matricola: string;
+  /** Ruolo da tipo_utente (es. Iscritto, Operatore); preferito per filtri */
+  tipoUtente?: string;
   userCode: string;
   status: string;
   accessHistory?: AccessHistoryEntry[];

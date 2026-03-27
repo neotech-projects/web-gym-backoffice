@@ -36,7 +36,6 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     // Assicura che il form sia sempre vuoto all'inizializzazione
     this.resetForm();
-    // Setup menu mobile
     this.setupMobileMenu();
   }
 
@@ -187,7 +186,7 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
       birthdate: this.birthdate,
       gender: this.gender,
       company: finalCompany ?? '',
-      userCode: 'ISCRITTO',
+      userCode: 'Iscritto',
       matricola: '',
       status: 'Attivo',
       password: this.password

@@ -83,7 +83,6 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
       this.checkMissedBookings();
     });
 
-    // Inizializzazione del layout
     this.initMobileMenu();
   }
 
@@ -148,30 +147,25 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
    * Inizializza il menu mobile
    */
   private initMobileMenu() {
-    // Assicura che il menu mobile funzioni correttamente
     const hamburger = document.getElementById('topnav-hamburger-icon');
     const verticalOverlay = document.querySelector('.vertical-overlay');
-    
+
     if (!hamburger) return;
-    
-    // Override del click sul pulsante hamburger per assicurare che funzioni
-    hamburger.addEventListener('click', function(e) {
+
+    hamburger.addEventListener('click', function () {
       const width = window.innerWidth;
-      
+
       if (width <= 767) {
-        // Mobile: toggle sidebar-enable
         document.body.classList.toggle('vertical-sidebar-enable');
-        
-        // Assicura che la sidebar sia impostata su lg
+
         if (document.body.classList.contains('vertical-sidebar-enable')) {
           document.documentElement.setAttribute('data-sidebar-size', 'lg');
         }
       }
-    }, true); // Use capture per eseguire prima di altri handler
-    
-    // Click sull'overlay per chiudere
+    }, true);
+
     if (verticalOverlay) {
-      verticalOverlay.addEventListener('click', function() {
+      verticalOverlay.addEventListener('click', function () {
         document.body.classList.remove('vertical-sidebar-enable');
       });
     }

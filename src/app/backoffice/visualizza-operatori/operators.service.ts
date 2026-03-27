@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Operator, UtenteBackend } from '../../shared/models/operator-data.interface';
@@ -9,29 +9,42 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class OperatorsService {
-  // Come dashboard: environment.apiUrl + path (/api/operatori)
-  private get API_URL(): string {
+  /** Lista: {@code GET /api/utenti?staff=true} (path unico per il gateway). */
+  private get utentiBaseUrl(): string {
     const base = environment.apiUrl;
-    return base ? `${base}/api/operatori` : '/api/operatori';
+    return base ? `${base}/api/utenti` : '/api/utenti';
   }
+
+  /**
+   * Stessi path degli iscritti ({@code POST|PUT|DELETE /api/utenti}) con {@code staff=true}:
+   * il gateway inoltra come le altre chiamate utenti; path tipo {@code /api/operatori} o {@code /api/utenti/operatori} possono dare 404/405.
+   */
+  private readonly staffQuery = new HttpParams().set('staff', 'true');
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Recuperaa la lista degli operatori da ms-gym-backoffice (GET /api/operatori).
-   * Il backend restituisce List<Utente> = array senza wrapper.
-   * In caso di errore HTTP l'errore viene propagato (nessun fallback a JSON locali).
-   */
   getOperators(): Observable<Operator[]> {
-    return this.http.get<UtenteBackend[]>(this.API_URL, {
-      headers: { Accept: 'application/json' }
-    }).pipe(
-      map((list) => (list || []).map((u) => this.mapUtenteToOperator(u))),
-      catchError((error: HttpErrorResponse) => throwError(() => error))
-    );
+    return this.http
+      .get<UtenteBackend[]>(this.utentiBaseUrl, {
+        params: { staff: 'true' },
+        headers: { Accept: 'application/json' }
+      })
+      .pipe(
+        map((list) =>
+          (list || [])
+            .filter((u) => this.isSoloStaffBackoffice(u.tipoUtente))
+            .map((u) => this.mapUtenteToOperator(u))
+        ),
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+      );
   }
 
-  /** Mappa il DTO Utente del backend nel modello Operator usato dalla UI */
+  /** Allineato al backend: solo Operatore/Admin (come la lista iscritti esclude questi tipi). */
+  private isSoloStaffBackoffice(tipo: string | undefined): boolean {
+    const t = (tipo ?? '').trim().toLowerCase();
+    return t === 'operatore' || t === 'admin';
+  }
+
   private mapUtenteToOperator(u: UtenteBackend): Operator {
     const birthdate = u.dataNascita
       ? typeof u.dataNascita === 'string'
@@ -47,7 +60,7 @@ export class OperatorsService {
       birthdate,
       birthdateDisplay: birthdate ? new Date(birthdate).toLocaleDateString('it-IT') : undefined,
       gender: u.sesso ?? '',
-      role: u.tipoUtente ?? 'OPERATORE',
+      role: this.normalizeTipoUtenteDisplay(u.tipoUtente),
       status: u.stato ?? '',
       registrationDate: u.creato,
       societaId: u.societaId,
@@ -56,8 +69,24 @@ export class OperatorsService {
     };
   }
 
-  /** Mappa Operator (UI) in UtenteBackend per POST/PUT */
+  /** Allinea a {@code tipo_utente} sul backend (Operatore / Admin). */
+  private normalizeTipoUtenteDisplay(tipo: string | undefined): string {
+    const t = (tipo ?? '').trim();
+    if (!t) {
+      return 'Operatore';
+    }
+    const lower = t.toLowerCase();
+    if (lower === 'admin') {
+      return 'Admin';
+    }
+    if (lower === 'operatore') {
+      return 'Operatore';
+    }
+    return t;
+  }
+
   private mapOperatorToUtente(o: Partial<Operator>): UtenteBackend {
+    const ruolo = (o.role ?? '').trim();
     return {
       id: typeof o.id === 'number' ? o.id : undefined,
       nome: o.firstName ?? '',
@@ -69,39 +98,40 @@ export class OperatorsService {
       stato: o.status || undefined,
       societaId: o.societaId,
       matricola: o.matricola,
-      password: o.password
+      password: o.password,
+      tipoUtente: ruolo || undefined
     };
   }
 
-  /**
-   * Crea un nuovo operatore (POST /api/operatori). Body in formato Utente; risposta Utente.
-   */
   createOperator(operator: Partial<Operator>): Observable<Operator> {
     const body = this.mapOperatorToUtente(operator);
-    return this.http.post<UtenteBackend>(this.API_URL, body).pipe(
-      map((created) => this.mapUtenteToOperator(created)),
-      catchError((error: HttpErrorResponse) => throwError(() => error))
-    );
+    return this.http
+      .post<UtenteBackend>(this.utentiBaseUrl, body, { params: this.staffQuery })
+      .pipe(
+        map((created) => this.mapUtenteToOperator(created)),
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+      );
   }
 
-  /**
-   * Aggiorna un operatore (PUT /api/operatori/{id}). Body in formato Utente; risposta Utente.
-   */
   updateOperator(operatorId: number | string, operator: Partial<Operator>): Observable<Operator> {
     const body = this.mapOperatorToUtente(operator);
-    return this.http.put<UtenteBackend>(`${this.API_URL}/${operatorId}`, body).pipe(
-      map((updated) => this.mapUtenteToOperator(updated)),
-      catchError((error: HttpErrorResponse) => throwError(() => error))
-    );
+    return this.http
+      .put<UtenteBackend>(`${this.utentiBaseUrl}/${operatorId}`, body, { params: this.staffQuery })
+      .pipe(
+        map((updated) => this.mapUtenteToOperator(updated)),
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+      );
   }
 
-  /**
-   * Elimina un operatore (DELETE /api/operatori/{id}). Backend restituisce 204 No Content.
-   */
   deleteOperator(operatorId: number | string): Observable<boolean> {
-    return this.http.delete<void>(`${this.API_URL}/${operatorId}`, { observe: 'response' }).pipe(
-      map((response) => response.status >= 200 && response.status < 300),
-      catchError((error: HttpErrorResponse) => throwError(() => error))
-    );
+    return this.http
+      .delete<void>(`${this.utentiBaseUrl}/${operatorId}`, {
+        params: this.staffQuery,
+        observe: 'response'
+      })
+      .pipe(
+        map((response) => response.status >= 200 && response.status < 300),
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+      );
   }
 }

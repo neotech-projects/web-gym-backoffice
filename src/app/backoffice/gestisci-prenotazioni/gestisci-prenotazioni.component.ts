@@ -593,7 +593,20 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
         this.cleanupModal();
       });
 
-      // I pulsanti di chiusura sono gestiti tramite (click) nel template
+      // Cancella prenotazione dalla tabella (delegazione: righe generate dinamicamente)
+      viewDayBookingsModalElement.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        const btn = target.closest('button[data-delete-booking-id]') as HTMLButtonElement | null;
+        if (!btn || !viewDayBookingsModalElement.contains(btn)) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        const id = btn.getAttribute('data-delete-booking-id');
+        if (id) {
+          this.deleteBookingFromDayModal(id);
+        }
+      });
     }
 
     // Gestione modale viewBookingModal
@@ -704,6 +717,8 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
 
           let currentTime = new Date(dayStart);
           let hasBookings = false;
+          /** Evita due pulsanti cancella per la stessa prenotazione su slot consecutivi (stesso id). */
+          const deleteButtonShownForBookingId = new Set<string>();
 
           while (currentTime < dayEnd) {
             const slotStart = new Date(currentTime);
@@ -739,16 +754,31 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
                 const bookingStart = new Date(booking.start);
                 const bookingEnd = new Date(booking.end);
                 const timeRange = `${String(bookingStart.getHours()).padStart(2, '0')}:${String(bookingStart.getMinutes()).padStart(2, '0')} - ${String(bookingEnd.getHours()).padStart(2, '0')}:${String(bookingEnd.getMinutes()).padStart(2, '0')}`;
-                
+                const bid = booking.id != null && String(booking.id).length > 0 ? String(booking.id) : '';
+                let showDelete = false;
+                if (bid) {
+                  if (!deleteButtonShownForBookingId.has(bid)) {
+                    deleteButtonShownForBookingId.add(bid);
+                    showDelete = true;
+                  }
+                }
+                const deleteBtn =
+                  showDelete && bid
+                    ? `<button type="button" class="btn btn-sm btn-soft-danger flex-shrink-0" data-delete-booking-id="${bid}" title="Cancella prenotazione" aria-label="Cancella prenotazione">
+                         <i class="ri-delete-bin-line"></i>
+                       </button>`
+                    : '';
+
                 return `
-                  <div class="d-flex align-items-center mb-2">
-                    <div class="avatar-xxs me-2">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="avatar-xxs flex-shrink-0">
                       <div class="avatar-title bg-primary-subtle text-primary rounded-circle fs-10">${userInitials}</div>
                     </div>
-                    <div class="flex-grow-1">
+                    <div class="flex-grow-1 min-w-0">
                       <span class="fs-13 fw-semibold d-block">${userName}</span>
                       <small class="text-muted d-block">${timeRange}</small>
                     </div>
+                    ${deleteBtn}
                   </div>
                 `;
               }).join('');
@@ -893,6 +923,32 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
     const eventDate = new Date(event.start);
     eventDate.setHours(0, 0, 0, 0);
     this.openBookingModalWithDayView(eventDate);
+  }
+
+  /**
+   * Cancella una prenotazione dalla modale «Prenotazioni per il …» (icona cestino accanto all’utente).
+   */
+  deleteBookingFromDayModal(bookingId: string) {
+    if (!confirm('Sei sicuro di voler cancellare questa prenotazione?')) {
+      return;
+    }
+    this.bookingsService.deleteBooking(bookingId).subscribe({
+      next: () => {
+        const indexAll = this.allBookings.findIndex(b => b.id === bookingId);
+        if (indexAll > -1) {
+          this.allBookings.splice(indexAll, 1);
+        }
+        const indexBookings = this.bookings.findIndex(b => b.id === bookingId);
+        if (indexBookings > -1) {
+          this.bookings.splice(indexBookings, 1);
+        }
+        this.refreshCalendar();
+        if (this.selectedDateForBooking) {
+          this.openBookingModalWithDayView(this.selectedDateForBooking);
+        }
+      },
+      error: () => alert('Errore durante l\'eliminazione della prenotazione.')
+    });
   }
 
   deleteCurrentBooking() {

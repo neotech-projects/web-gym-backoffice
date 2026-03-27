@@ -16,7 +16,7 @@ export interface Operator {
   matricola?: string;
 }
 
-/** Risposta GET /api/operatori da ms-gym-backoffice (List<Utente> = array senza wrapper) */
+/** Risposta GET …/api/utenti?staff=true (o …/api/utenti/operatori) — List<Utente> staff */
 export interface UtenteBackend {
   id?: number;
   nome: string;

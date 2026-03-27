@@ -46,9 +46,25 @@ export class UsersService {
     } as User;
   }
 
+  /** Operatore o Admin (come login backoffice); non sono "iscritti" in questa lista. */
+  private isStaffTipo(tipo: string | undefined | null): boolean {
+    if (tipo == null || String(tipo).trim() === '') return false;
+    const t = String(tipo).trim().toLowerCase();
+    return t === 'operatore' || t === 'admin';
+  }
+
+  /** Lista gestione utenti: solo iscritti (esclude staff anche se l'API non è filtrata). */
+  private filterListaIscritti(users: User[]): User[] {
+    return users.filter((u) => {
+      const ruolo = u.tipoUtente ?? u.userCode;
+      return !this.isStaffTipo(ruolo);
+    });
+  }
+
   /** Mappa il DTO Utente del backend nel modello User usato dalla UI */
   private mapUtenteToUser(u: UtenteBackend): User {
     const birthdate = u.dataNascita ? (typeof u.dataNascita === 'string' ? u.dataNascita : '') : '';
+    const tipoUtente = u.tipoUtente;
     return {
       id: u.id ?? 0,
       firstName: u.nome ?? '',
@@ -60,7 +76,8 @@ export class UsersService {
       birthdateDisplay: birthdate ? new Date(birthdate).toLocaleDateString('it-IT') : undefined,
       gender: u.sesso ?? '',
       matricola: u.matricola ?? '',
-      userCode: u.tipoUtente ?? u.matricola ?? '',
+      tipoUtente,
+      userCode: tipoUtente ?? u.matricola ?? '',
       status: u.stato ?? '',
       registrationDate: u.creato,
       societaId: u.societaId
@@ -138,7 +155,8 @@ export class UsersService {
     }).pipe(
       map(list => {
         this.serverAvailable = true;
-        return (list || []).map(u => this.mapUtenteToUser(u));
+        const mapped = (list || []).map(u => this.mapUtenteToUser(u));
+        return this.filterListaIscritti(mapped);
       }),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 404) {
@@ -155,7 +173,9 @@ export class UsersService {
    */
   private getMockUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.MOCK_URL).pipe(
-      map(users => users.map(user => this.normalizeUser(user))),
+      map(users =>
+        this.filterListaIscritti(users.map(user => this.normalizeUser(user)))
+      ),
       catchError(error => {
         console.error('Errore nel caricamento del mock:', error);
         // Fallback a dati di default

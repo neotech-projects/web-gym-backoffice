@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { OperatorProfile } from '../../shared/models/operator-profile-data.interface';
@@ -11,11 +11,13 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class OperatorProfileService {
-  // Base URL ms-gym-backoffice: /api/operatori (profilo sotto /profilo e /profilo/cambio-password)
-  private get API_BASE(): string {
+  /** Stesso prefisso degli operatori: {@code /api/utenti} + {@code staff=true} (profilo/cambio password). */
+  private get utentiApiBase(): string {
     const base = environment.apiUrl;
-    return base ? `${base}/api/operatori` : '/api/operatori';
+    return base ? `${base}/api/utenti` : '/api/utenti';
   }
+
+  private readonly staffParams = new HttpParams().set('staff', 'true');
 
   private readonly MOCK_URL = '/assets/mock/operator-profile.json';
   private serverAvailable: boolean = true;
@@ -75,7 +77,7 @@ export class OperatorProfileService {
 
   /**
    * Recupera il profilo dell'operatore.
-   * Con operatorId: GET /api/operatori/profilo?utenteId=X (ms-gym-backoffice).
+   * GET /api/utenti?staff=true&profilo=true&utenteId=X — non usare /profilo (nginx può dare 405 su GET; Allow mostra solo PUT, DELETE).
    * Senza operatorId: fallback su getOperators().find().
    */
   getProfile(operatorId?: number | string): Observable<OperatorProfile> {
@@ -83,14 +85,15 @@ export class OperatorProfileService {
       if (!this.isServerAvailable()) {
         return this.getMockProfile(operatorId);
       }
-      const params = { utenteId: String(operatorId) };
-      return this.http.get<UtenteBackend>(`${this.API_BASE}/profilo`, { params }).pipe(
-        map(u => {
+      const params = this.staffParams.set('utenteId', String(operatorId)).set('profilo', 'true');
+      return this.http.get<UtenteBackend | UtenteBackend[]>(this.utentiApiBase, { params }).pipe(
+        map(raw => {
+          const u = this.extractUtenteFromProfiloResponse(raw, operatorId);
           this.serverAvailable = true;
           return this.mapUtenteToProfile(u);
         }),
         catchError((error: HttpErrorResponse) => {
-          if (error.status === 404 || error.status === 403) {
+          if (error.status === 404 || error.status === 403 || error.status === 405) {
             this.serverAvailable = false;
             return this.getMockProfile(operatorId);
           }
@@ -120,8 +123,40 @@ export class OperatorProfileService {
     );
   }
 
+  /**
+   * Se manca param profilo in query, il backend risponde con la lista: array invece di un solo utente.
+   */
+  private extractUtenteFromProfiloResponse(
+    raw: UtenteBackend | UtenteBackend[],
+    operatorId: number | string
+  ): UtenteBackend {
+    if (Array.isArray(raw)) {
+      const found = raw.find(x => x != null && String(x.id) === String(operatorId));
+      if (!found) {
+        throw new Error('Profilo non trovato nella lista');
+      }
+      return found;
+    }
+    return raw;
+  }
+
+  /** Jackson può inviare la data come stringa ISO o come timestamp (numero). */
+  private normalizeDataNascita(value: unknown): string {
+    if (value == null || value === '') {
+      return '';
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'number') {
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+    }
+    return '';
+  }
+
   private mapUtenteToProfile(u: UtenteBackend): OperatorProfile {
-    const birthdate = u.dataNascita ? (typeof u.dataNascita === 'string' ? u.dataNascita : '') : '';
+    const birthdate = this.normalizeDataNascita(u.dataNascita as unknown);
     return {
       id: u.id ?? 0,
       firstName: u.nome ?? '',
@@ -207,7 +242,7 @@ export class OperatorProfileService {
 
   /**
    * Aggiorna il profilo (solo email e telefono).
-   * PUT /api/operatori/profilo?utenteId=X, body ModificaProfiloRequest.
+   * PUT /api/utenti?staff=true&profilo=true&utenteId=X, body ModificaProfiloRequest.
    * profile.id è obbligatorio per utenteId.
    */
   updateProfile(profile: Partial<OperatorProfile>): Observable<OperatorProfile> {
@@ -225,8 +260,8 @@ export class OperatorProfileService {
     }
 
     const body = { email: profile.email, telefono: profile.phone };
-    const params = { utenteId: String(utenteId) };
-    return this.http.put<UtenteBackend>(`${this.API_BASE}/profilo`, body, { params }).pipe(
+    const params = this.staffParams.set('utenteId', String(utenteId)).set('profilo', 'true');
+    return this.http.put<UtenteBackend>(this.utentiApiBase, body, { params }).pipe(
       map(updated => {
         this.serverAvailable = true;
         return this.mapUtenteToProfile(updated);
@@ -243,12 +278,12 @@ export class OperatorProfileService {
 
   /**
    * Cambia la password dell'operatore.
-   * POST /api/operatori/profilo/cambio-password?utenteId=X, body { vecchiaPassword, nuovaPassword }.
+   * POST /api/utenti?staff=true&cambioPwd=true&utenteId=X (stessa URL del gateway del POST utenti; {@code cambioPwd} evita 400/404 rispetto a {@code cambioPassword} o path /profilo/...).
    */
   changePassword(operatorId: number | string, oldPassword: string, newPassword: string): Observable<boolean> {
-    const params = { utenteId: String(operatorId) };
     const body = { vecchiaPassword: oldPassword, nuovaPassword: newPassword };
-    return this.http.post<void>(`${this.API_BASE}/profilo/cambio-password`, body, { params, observe: 'response' }).pipe(
+    const params = this.staffParams.set('utenteId', String(operatorId)).set('cambioPwd', 'true');
+    return this.http.post<void>(this.utentiApiBase, body, { params, observe: 'response' }).pipe(
       map(response => {
         this.serverAvailable = true;
         return response.status >= 200 && response.status < 300;

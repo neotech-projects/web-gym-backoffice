@@ -4,7 +4,7 @@ import { AuthService } from '../services/auth.service';
 
 /**
  * Aggiunge l'header authToken a tutte le richieste verso le API backoffice (/api/...),
- * escludendo login, registrazione e password-reset che sono pubblici.
+ * escludendo login, eventuali endpoint API di registrazione e password-reset pubblici.
  */
 export function authTokenInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
   const auth = inject(AuthService);

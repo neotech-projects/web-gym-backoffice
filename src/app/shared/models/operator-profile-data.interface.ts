@@ -11,13 +11,13 @@ export interface OperatorProfile {
   avatar?: string;
 }
 
-/** Body PUT /api/operatori/profilo */
+/** Body PUT …/api/utenti?staff=true&profilo=true&utenteId= */
 export interface ModificaProfiloRequest {
   email?: string;
   telefono?: string;
 }
 
-/** Body POST /api/operatori/profilo/cambio-password */
+/** Body POST …/api/utenti?staff=true&cambioPwd=true&utenteId= */
 export interface CambioPasswordRequest {
   vecchiaPassword: string;
   nuovaPassword: string;

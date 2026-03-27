@@ -4,6 +4,6 @@
 
 export const environment = {
     production: false,
-    // Come web-gym-iscritto: in dev chiamate dirette a ms-gym-backoffice (porta 8080)
+    
     apiUrl: 'https://gyminvestire.neotech.srl/api/backoffice-ms',
   };
