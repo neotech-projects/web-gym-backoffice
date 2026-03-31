@@ -5,5 +5,6 @@
 export const environment = {
     production: false,
     
-    apiUrl: 'https://gyminvestire.neotech.srl/api/backoffice-ms',
-  };
+   apiUrl: 'https://gyminvestire.neotech.srl/api/backoffice-ms',
+   // apiUrl: 'http://localhost:8080',
+  };  

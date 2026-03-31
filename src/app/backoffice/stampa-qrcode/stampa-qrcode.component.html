@@ -30,7 +30,6 @@
                     </div>
                     <div *ngIf="!loading && qrDataUrl" class="text-center mb-4">
                         <img [src]="qrDataUrl" alt="QR Code ingresso" class="img-fluid" style="max-width: 400px;">
-                        <p *ngIf="urlNelQr" class="text-muted small mt-3 text-break px-2">{{ urlNelQr }}</p>
                     </div>
                     <div *ngIf="!loading && !qrDataUrl && !error" class="text-center text-muted mb-4">
                         Nessun QR disponibile.

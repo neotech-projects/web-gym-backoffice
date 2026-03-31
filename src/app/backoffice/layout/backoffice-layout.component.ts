@@ -30,6 +30,10 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
   get userIsAdmin(): boolean {
     return this.authService.isAdmin();
   }
+
+  get userCanRegisterUsers(): boolean {
+    return this.authService.isAdmin() || this.authService.isOperator();
+  }
   
   get currentYear(): number {
     return new Date().getFullYear();
