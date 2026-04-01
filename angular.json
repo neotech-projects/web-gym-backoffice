@@ -40,6 +40,8 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/backoffice/",
+              "deployUrl": "/backoffice/",
               "budgets": [
                 {
                   "type": "initial",
