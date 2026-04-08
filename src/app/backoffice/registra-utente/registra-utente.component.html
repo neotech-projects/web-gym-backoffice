@@ -25,7 +25,6 @@
                                     </h4>
                                 </div>
                                 <div class="card-body">
-                                    <div class="card-body">
                                     <form (ngSubmit)="onSubmit()" #registerUserForm="ngForm" autocomplete="off">
                                         <div class="row">
                                             <div class="col-md-6">
@@ -77,8 +76,17 @@
                                             </div>
                                         </div>
 
-                                        <div class="row">
-                                            <div class="col-md-6">
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-12 col-sm-6">
+                                                <div class="mb-3">
+                                                    <label for="tipoUtente" class="form-label">Tipologia utente <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="tipoUtente" [(ngModel)]="tipoUtente" name="tipoUtente" required>
+                                                        <option value="Iscritto">Iscritto</option>
+                                                        <option value="Personal Trainer">Personal Trainer</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-sm-6">
                                                 <div class="mb-3">
                                                     <label for="company" class="form-label">Società <span class="text-danger">*</span></label>
                                                     <select class="form-select" id="company" [(ngModel)]="company" (change)="onCompanyChange()" name="company" required>

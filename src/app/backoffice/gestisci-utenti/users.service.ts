@@ -95,7 +95,7 @@ export class UsersService {
       telefono: user.phone ?? undefined,
       dataNascita: user.birthdate || undefined,
       sesso: user.gender || undefined,
-      tipoUtente: user.userCode || undefined,
+      tipoUtente: (user.tipoUtente ?? user.userCode) || undefined,
       stato: user.status || undefined,
       societaId: user.societaId,
       matricola: user.matricola,

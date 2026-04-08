@@ -90,8 +90,8 @@
                         <thead>
                             <tr>
                                 <th scope="col">Orario</th>
-                                <th scope="col">Utenti Prenotati</th>
-                                <th scope="col">Occupazione</th>
+                                <th scope="col">Utente</th>
+                                <th scope="col">Durata</th>
                             </tr>
                         </thead>
                         <tbody id="viewDayBookingsTableBody">
@@ -184,16 +184,16 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label for="bookingStartTime" class="form-label">Ora Inizio <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control" id="bookingStartTime" required>
+                            <input type="time" class="form-control" id="bookingStartTime" step="60" required>
                         </div>
                         <div class="col-6">
                             <label for="bookingEndTime" class="form-label">Ora Fine <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control" id="bookingEndTime" required>
+                            <input type="time" class="form-control" id="bookingEndTime" step="60" required>
                         </div>
                     </div>
                     <div class="alert alert-info mb-0" role="alert">
                         <i class="ri-information-line me-2"></i>
-                        <strong>Nota:</strong> La prenotazione ha una durata minima di 30 minuti e massima di 2 ore.
+                        <strong>Nota:</strong> Indica ora di inizio e fine con precisione al minuto (es. 45 minuti). Durata minima 30 minuti, massima 2 ore.
                     </div>
                     <div id="availabilityInfo" class="alert" role="alert" style="display: none;">
                         <i class="ri-group-line me-2"></i>

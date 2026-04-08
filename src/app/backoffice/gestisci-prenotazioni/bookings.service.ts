@@ -98,10 +98,13 @@ export class BookingsService {
         }
         start = new Date(`${dataStr}T${timePart || '09:00:00'}`);
       }
-      startISO = `${dataStr}T${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}:${String(start.getSeconds()).padStart(2, '0')}`;
+      const pad2 = (n: number) => String(n).padStart(2, '0');
+      const datePart = (d: Date) =>
+        `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+      startISO = `${datePart(start)}T${pad2(start.getHours())}:${pad2(start.getMinutes())}:${pad2(start.getSeconds())}`;
       const durata = (p.durataMinuti != null && p.durataMinuti > 0) ? p.durataMinuti : 60;
       const end = new Date(start.getTime() + durata * 60 * 1000);
-      endISO = `${dataStr}T${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}:${String(end.getSeconds()).padStart(2, '0')}`;
+      endISO = `${datePart(end)}T${pad2(end.getHours())}:${pad2(end.getMinutes())}:${pad2(end.getSeconds())}`;
     } else {
       startISO = `${dataStr}T09:00:00`;
       endISO = `${dataStr}T10:00:00`;

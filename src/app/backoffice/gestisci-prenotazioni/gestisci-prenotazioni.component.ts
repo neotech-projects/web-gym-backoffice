@@ -181,6 +181,16 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
     return `${year}-${month}-${day}`;
   }
 
+  /** Data/ora locale per FullCalendar (evita lo shift UTC di toISOString()). */
+  private formatLocalDateTime(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  private formatTimeHM(d: Date): string {
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
   /**
    * Carica le prenotazioni dal microservizio
    */
@@ -357,23 +367,16 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
           }
         }
 
-        // Crea un evento per ogni range unificato (solo per viste timeGrid, non allDay)
+        // Crea un evento per ogni range unificato (orario effettivo inizio–fine, senza arrotondamenti a slot)
         timeRanges.forEach((range, index) => {
           const slotKey = `${dateStr}_${index}`;
           
           if (!processedTimeSlots.has(slotKey)) {
-            // Arrotonda ai 30 minuti più vicini
-            const roundedStart = new Date(range.start);
-            roundedStart.setMinutes(Math.floor(roundedStart.getMinutes() / 30) * 30, 0, 0);
-            
-            const roundedEnd = new Date(range.end);
-            roundedEnd.setMinutes(Math.ceil(roundedEnd.getMinutes() / 30) * 30, 0, 0);
-
             const slotEvent: any = {
               id: `slot_${slotKey}`,
               title: 'Prenotazione',
-              start: roundedStart.toISOString(),
-              end: roundedEnd.toISOString(),
+              start: this.formatLocalDateTime(range.start),
+              end: this.formatLocalDateTime(range.end),
               backgroundColor: '#405189',
               borderColor: '#405189',
               display: 'block', // Mostra solo nelle viste timeGrid
@@ -709,105 +712,65 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
             </tr>
           `;
         } else {
-          // Raggruppa le prenotazioni per slot di 30 minuti
-          const dayStart = new Date(date);
-          dayStart.setHours(6, 0, 0, 0);
-          const dayEnd = new Date(date);
-          dayEnd.setHours(23, 0, 0, 0);
-
-          let currentTime = new Date(dayStart);
-          let hasBookings = false;
-          /** Evita due pulsanti cancella per la stessa prenotazione su slot consecutivi (stesso id). */
-          const deleteButtonShownForBookingId = new Set<string>();
-
-          while (currentTime < dayEnd) {
-            const slotStart = new Date(currentTime);
-            const slotEnd = new Date(currentTime.getTime() + 30 * 60000);
-
-            // Trova tutte le prenotazioni che si sovrappongono a questo slot (usa filteredBookings invece di dayBookings)
-            const overlappingBookings = filteredBookings.filter(booking => {
-              const bookingStart = new Date(booking.start);
-              const bookingEnd = new Date(booking.end);
-              return bookingStart < slotEnd && bookingEnd > slotStart;
-            });
-
-            const count = overlappingBookings.length;
-
-            if (count > 0) {
-              hasBookings = true;
-              let occupancyBadge = '';
-              if (count >= this.MAX_CAPACITY) {
-                occupancyBadge = '<span class="badge bg-danger-subtle text-danger">Completo</span>';
-              } else if (count > 0) {
-                occupancyBadge = '<span class="badge bg-warning-subtle text-warning">Pochi posti</span>';
-              }
-
-              const usersHtml = overlappingBookings.map(booking => {
-                // Prova a recuperare il nome utente da varie fonti
-                const userName = booking.extendedProps?.user || 
-                                 booking.user || 
-                                 (booking.extendedProps?.bookings && booking.extendedProps.bookings[0]?.extendedProps?.user) ||
-                                 'Utente Sconosciuto';
-                const userInitials = userName.substring(0, 2).toUpperCase();
-                
-                // Estrai orario dalla prenotazione
-                const bookingStart = new Date(booking.start);
-                const bookingEnd = new Date(booking.end);
-                const timeRange = `${String(bookingStart.getHours()).padStart(2, '0')}:${String(bookingStart.getMinutes()).padStart(2, '0')} - ${String(bookingEnd.getHours()).padStart(2, '0')}:${String(bookingEnd.getMinutes()).padStart(2, '0')}`;
-                const bid = booking.id != null && String(booking.id).length > 0 ? String(booking.id) : '';
-                let showDelete = false;
-                if (bid) {
-                  if (!deleteButtonShownForBookingId.has(bid)) {
-                    deleteButtonShownForBookingId.add(bid);
-                    showDelete = true;
-                  }
-                }
-                const deleteBtn =
-                  showDelete && bid
-                    ? `<button type="button" class="btn btn-sm btn-soft-danger flex-shrink-0" data-delete-booking-id="${bid}" title="Cancella prenotazione" aria-label="Cancella prenotazione">
-                         <i class="ri-delete-bin-line"></i>
-                       </button>`
-                    : '';
-
-                return `
-                  <div class="d-flex align-items-center gap-2 mb-2">
-                    <div class="avatar-xxs flex-shrink-0">
-                      <div class="avatar-title bg-primary-subtle text-primary rounded-circle fs-10">${userInitials}</div>
-                    </div>
-                    <div class="flex-grow-1 min-w-0">
-                      <span class="fs-13 fw-semibold d-block">${userName}</span>
-                      <small class="text-muted d-block">${timeRange}</small>
-                    </div>
-                    ${deleteBtn}
-                  </div>
-                `;
-              }).join('');
-
-              const timeStr = `${String(slotStart.getHours()).padStart(2, '0')}:${String(slotStart.getMinutes()).padStart(2, '0')} - ${String(slotEnd.getHours()).padStart(2, '0')}:${String(slotEnd.getMinutes()).padStart(2, '0')}`;
-
-              const row = `
-                <tr>
-                  <td class="fw-semibold">${timeStr}</td>
-                  <td>${usersHtml}</td>
-                  <td>${count} / ${this.MAX_CAPACITY} persone<br>${occupancyBadge}</td>
-                </tr>
-              `;
-              tableBody.innerHTML += row;
+          // Una riga per prenotazione: orario effettivo inizio–fine e durata (nessun raggruppamento per slot da 30 min)
+          const byId = new Map<string, Booking>();
+          filteredBookings.forEach((b) => {
+            const key = b.id != null && String(b.id).length > 0 ? String(b.id) : `${b.start}|${b.user}`;
+            if (!byId.has(key)) {
+              byId.set(key, b);
             }
+          });
+          const sorted = [...byId.values()].sort(
+            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+          );
 
-            currentTime = slotEnd;
-          }
+          sorted.forEach((booking) => {
+            const bookingStart = new Date(booking.start);
+            const bookingEnd = new Date(booking.end);
+            const timeStr = `${this.formatTimeHM(bookingStart)} – ${this.formatTimeHM(bookingEnd)}`;
+            const durataMin = Math.max(
+              0,
+              Math.round((bookingEnd.getTime() - bookingStart.getTime()) / 60000)
+            );
+            const h = Math.floor(durataMin / 60);
+            const m = durataMin % 60;
+            const durataLabel =
+              h > 0 ? (m > 0 ? `${h} h ${m} min` : `${h} h`) : `${m} min`;
 
-          if (!hasBookings) {
-            tableBody.innerHTML = `
+            const userName =
+              booking.extendedProps?.user ||
+              booking.user ||
+              (booking.extendedProps?.bookings &&
+                booking.extendedProps.bookings[0]?.extendedProps?.user) ||
+              'Utente Sconosciuto';
+            const userInitials = userName.substring(0, 2).toUpperCase();
+            const bid = booking.id != null && String(booking.id).length > 0 ? String(booking.id) : '';
+            const deleteBtn = bid
+              ? `<button type="button" class="btn btn-sm btn-soft-danger flex-shrink-0" data-delete-booking-id="${bid}" title="Cancella prenotazione" aria-label="Cancella prenotazione">
+                   <i class="ri-delete-bin-line"></i>
+                 </button>`
+              : '';
+
+            const userCell = `
+              <div class="d-flex align-items-center gap-2">
+                <div class="avatar-xxs flex-shrink-0">
+                  <div class="avatar-title bg-primary-subtle text-primary rounded-circle fs-10">${userInitials}</div>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <span class="fs-13 fw-semibold d-block">${userName}</span>
+                </div>
+                ${deleteBtn}
+              </div>
+            `;
+
+            tableBody.innerHTML += `
               <tr>
-                <td colspan="3" class="text-center text-muted py-4">
-                  <i class="ri-calendar-check-line fs-20 d-block mb-2"></i>
-                  Nessuna prenotazione per questo giorno
-                </td>
+                <td class="fw-semibold text-nowrap">${timeStr}</td>
+                <td>${userCell}</td>
+                <td>${durataLabel}</td>
               </tr>
             `;
-          }
+          });
         }
 
         // Apri la modale

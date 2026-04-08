@@ -23,6 +23,8 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   otherCompany: string = '';
   password: string = '';
   confirmPassword: string = '';
+  /** Valori inviati come `tipo_utente` sul DB: Iscritto | Personal Trainer */
+  tipoUtente: 'Iscritto' | 'Personal Trainer' = 'Iscritto';
   showOtherCompany: boolean = false;
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
@@ -157,6 +159,7 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
     this.password = '';
     this.confirmPassword = '';
     this.showOtherCompany = false;
+    this.tipoUtente = 'Iscritto';
   }
 
   onSubmit() {
@@ -186,7 +189,8 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
       birthdate: this.birthdate,
       gender: this.gender,
       company: finalCompany ?? '',
-      userCode: 'Iscritto',
+      tipoUtente: this.tipoUtente,
+      userCode: this.tipoUtente,
       matricola: '',
       status: 'Attivo',
       password: this.password
@@ -196,7 +200,7 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
     this.usersService.createUser(newUser).subscribe({
       next: (created) => {
         this.isSubmitting = false;
-        const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nSocietà: ${finalCompany}\n\nPassword (da comunicare all'utente):\n${this.password}\n\nVuoi visualizzare la lista utenti?`;
+        const message = `✓ Utente registrato con successo!\n\nNome: ${this.firstName} ${this.lastName}\nEmail: ${this.email}\nTipologia: ${this.tipoUtente}\nSocietà: ${finalCompany}\n\nPassword (da comunicare all'utente):\n${this.password}\n\nVuoi visualizzare la lista utenti?`;
         if (confirm(message)) {
           this.router.navigate(['/gestisci-utenti']);
         } else {
