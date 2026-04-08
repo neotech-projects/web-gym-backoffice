@@ -60,7 +60,7 @@ export class BookingsService {
   /** Da PrenotazioneBackend (data, oraInizio, durataMinuti) a start/end ISO e Booking.
    * Se durataMinuti è 0 o mancante, usa 60.
    * Per data (timestamp): +12h per evitare che mezzanotte UTC diventi il giorno prima in locale.
-   * Per data (stringa) con oraInizio "1970-01-01T...": il backend può aver serializzato la data in UTC (+1 giorno in locale). */
+   * Con oraInizio "1970-01-01T..." (TIME da DB) si usa la parte data di `data` così com’è dal backend, senza +1 giorno (in prod spostava tutte le prenotazioni di un giorno). */
   private static readonly NOON_MS = 12 * 60 * 60 * 1000;
 
   private mapPrenotazioneToBooking(p: PrenotazioneBackend, userName?: string): Booking {
@@ -71,14 +71,7 @@ export class BookingsService {
       dataStr = new Date(p.data + BookingsService.NOON_MS).toLocaleDateString('en-CA');
     } else {
       const dataPart = p.data.includes('T') ? p.data.split('T')[0] : p.data;
-      const oraStr = p.oraInizio != null ? String(p.oraInizio) : '';
-      if (oraStr.startsWith('1970-01-01') && /^\d{4}-\d{2}-\d{2}$/.test(dataPart)) {
-        const d = new Date(dataPart + 'T12:00:00');
-        d.setDate(d.getDate() + 1);
-        dataStr = d.toLocaleDateString('en-CA');
-      } else {
-        dataStr = dataPart;
-      }
+      dataStr = dataPart;
     }
     let startISO: string;
     let endISO: string;

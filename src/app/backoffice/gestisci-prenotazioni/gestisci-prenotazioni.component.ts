@@ -281,7 +281,7 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
         return;
       }
       try {
-        const bookingDate = new Date(booking.start).toISOString().split('T')[0];
+        const bookingDate = this.formatDateISO(new Date(booking.start));
         if (!bookingsByDate.has(bookingDate)) {
           bookingsByDate.set(bookingDate, []);
         }
@@ -402,7 +402,7 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
     for (let day = 0; day < 14; day++) {
       const currentDate = new Date(today);
       currentDate.setDate(today.getDate() + day);
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = this.formatDateISO(currentDate);
 
       for (let hour = 6; hour < 23; hour++) {
         for (let minute = 0; minute < 60; minute += 30) {
@@ -424,8 +424,8 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
           }
 
           backgrounds.push({
-            start: slotStart.toISOString(),
-            end: slotEnd.toISOString(),
+            start: this.formatLocalDateTime(slotStart),
+            end: this.formatLocalDateTime(slotEnd),
             display: 'background',
             backgroundColor: bgColor,
             title: title
