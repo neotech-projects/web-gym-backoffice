@@ -29,6 +29,7 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isSubmitting: boolean = false;
+  companies: string[] = [];
 
   constructor(
     private router: Router,
@@ -38,6 +39,7 @@ export class RegistraUtenteComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     // Assicura che il form sia sempre vuoto all'inizializzazione
     this.resetForm();
+    this.usersService.getSocieta().subscribe((c) => (this.companies = c));
     this.setupMobileMenu();
   }
 

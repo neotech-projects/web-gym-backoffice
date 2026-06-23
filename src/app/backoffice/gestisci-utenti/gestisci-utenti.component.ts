@@ -20,6 +20,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
   
   filterCognome: string = '';
   filterSocieta: string = '';
+  companies: string[] = [];
 
   // Modifica utente
   editUserId: number | string = '';
@@ -48,6 +49,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.loadUsers();
+    this.usersService.getSocieta().subscribe((c) => (this.companies = c));
     this.setupMobileMenu();
   }
 
@@ -154,9 +156,7 @@ export class GestisciUtentiComponent implements OnInit, AfterViewInit {
     this.editNewPassword = '';
     this.editConfirmPassword = '';
 
-    // Gestisci il caso "Altra società"
-    const predefinedCompanies = ['Acme Corporation', 'TechSolutions S.r.l.', 'Global Industries', 'Innovation Labs', 'Digital Services'];
-    if (!predefinedCompanies.includes(user.company)) {
+    if (!this.companies.includes(user.company)) {
       this.editCompany = 'Altra';
       this.editOtherCompany = user.company;
       this.editShowOtherCompany = true;

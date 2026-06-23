@@ -326,7 +326,7 @@
                                     <label for="editCompany" class="form-label">Società <span class="text-danger">*</span></label>
                                     <select class="form-select" id="editCompany" [(ngModel)]="editCompany" (change)="onEditCompanyChange()" name="editCompany" required>
                                         <option value="">Seleziona società</option>
-                    
+                                        <option *ngFor="let c of companies" [value]="c">{{ c }}</option>
                                         <option value="Altra">Altra (specifica sotto)</option>
                                     </select>
                                 </div>

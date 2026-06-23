@@ -74,6 +74,15 @@ export class UsersService {
     return body;
   }
 
+  getSocieta(): Observable<string[]> {
+    const base = environment.apiUrl;
+    const url = base ? `${base}/api/societa` : '/api/societa';
+    return this.http.get<{ nome: string }[]>(url).pipe(
+      map((list) => (list || []).map((s) => s.nome).filter(Boolean)),
+      catchError((error: HttpErrorResponse) => throwError(() => error))
+    );
+  }
+
   getUsers(): Observable<User[]> {
     return this.http.get<UtenteBackend[]>(this.API_URL, {
       headers: { Accept: 'application/json' }
