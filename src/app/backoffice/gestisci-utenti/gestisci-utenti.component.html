@@ -53,7 +53,7 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive">
+                                    <div class="table-responsive users-table-responsive">
                                         <table class="table table-hover table-nowrap align-middle mb-0" id="usersTable">
                                             <thead class="table-light">
                                                 <tr>
@@ -99,11 +99,11 @@
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2">
                                                             <!-- Menu dropdown -->
-                                                            <div class="dropdown">
-                                                                <button class="btn btn-sm btn-soft-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <div class="dropdown position-static">
+                                                                <button class="btn btn-sm btn-soft-secondary" type="button" [id]="'dropdownMenuButton_' + user.id" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
                                                                     <i class="ri-more-fill"></i>
                                                                 </button>
-                                                                <ul class="dropdown-menu">
+                                                                <ul class="dropdown-menu dropdown-menu-end" [attr.aria-labelledby]="'dropdownMenuButton_' + user.id">
                                                                     <li><a class="dropdown-item" href="#" (click)="editUser(user.id); $event.preventDefault()"><i class="ri-pencil-line me-2"></i>Modifica</a></li>
                                                                     <li><a class="dropdown-item" href="#" (click)="viewUserDetails(user.id); $event.preventDefault()"><i class="ri-eye-line me-2"></i>Dettagli</a></li>
                                                                     <li><a class="dropdown-item" href="#" (click)="viewUserHistory(user.id); $event.preventDefault()"><i class="ri-history-line me-2"></i>Storico</a></li>

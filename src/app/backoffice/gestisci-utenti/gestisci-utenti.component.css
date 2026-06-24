@@ -1,0 +1,8 @@
+.users-table-responsive {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.users-table-responsive .dropdown-menu {
+  z-index: 1080;
+}
