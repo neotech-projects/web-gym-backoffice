@@ -29,6 +29,7 @@ export interface AuthUser {
 })
 export class AuthService {
   private readonly STORAGE_KEY = 'current_user';
+  private readonly TOKEN_COOKIE_KEY = 'authToken';
   private currentUserSubject = new BehaviorSubject<AuthUser | null>(this.getStoredUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -42,7 +43,7 @@ export class AuthService {
   ) {}
 
   /**
-   * Effettua il login: chiama l'API backoffice e salva id, cognome, token (e nome, email) in localStorage.
+   * Effettua il login: chiama l'API backoffice e salva id, cognome, token (e nome, email) in sessionStorage.
    */
   login(email: string, password: string): Observable<boolean> {
     return this.http.post<LoginApiResponse>(this.loginUrl, { email, password }).pipe(
@@ -69,6 +70,8 @@ export class AuthService {
    * Effettua il logout
    */
   logout(): void {
+    sessionStorage.removeItem(this.STORAGE_KEY);
+    this.clearSessionCookie();
     localStorage.removeItem(this.STORAGE_KEY);
     this.currentUserSubject.next(null);
     this.router.navigate(['/auth/login']);
@@ -108,17 +111,20 @@ export class AuthService {
    * Imposta l'utente corrente
    */
   private setCurrentUser(user: AuthUser): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    this.setSessionCookie(user.token);
+    localStorage.removeItem(this.STORAGE_KEY);
     this.currentUserSubject.next(user);
   }
 
   /**
-   * Recupera l'utente salvato in localStorage (id, cognome, token, ecc.).
+   * Recupera l'utente salvato in sessionStorage (id, cognome, token, ecc.).
    * Se manca il token (login vecchio) ritorna null.
    */
   private getStoredUser(): AuthUser | null {
+    localStorage.removeItem(this.STORAGE_KEY);
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
+      const stored = sessionStorage.getItem(this.STORAGE_KEY);
       if (!stored) return null;
       const parsed = JSON.parse(stored) as AuthUser;
       if (!parsed?.token) return null;
@@ -126,5 +132,14 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  /** Cookie di sessione (senza scadenza): si cancella alla chiusura del browser. */
+  private setSessionCookie(token: string): void {
+    document.cookie = `${this.TOKEN_COOKIE_KEY}=${encodeURIComponent(token)}; path=/; SameSite=Strict`;
+  }
+
+  private clearSessionCookie(): void {
+    document.cookie = `${this.TOKEN_COOKIE_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`;
   }
 }
