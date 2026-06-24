@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ConfigurazioneService } from '../../shared/services/configurazione.service';
 
 @Component({
   selector: 'app-imposta-capacita-massima',
@@ -12,29 +13,44 @@ import { RouterLink } from '@angular/router';
 })
 export class ImpostaCapacitaMassimaComponent implements OnInit {
   capacitaMassima: number = 0;
-  private readonly STORAGE_KEY = 'capacita_massima_palestra';
+  isLoading = true;
+  isSaving = false;
+
+  constructor(private configurazioneService: ConfigurazioneService) {}
 
   ngOnInit() {
     this.loadCapacitaMassima();
   }
 
   loadCapacitaMassima() {
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-      this.capacitaMassima = parseInt(saved, 10) || 0;
-    }
+    this.isLoading = true;
+    this.configurazioneService.getCapacitaMassima().subscribe({
+      next: (value) => {
+        this.capacitaMassima = value;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        alert('Impossibile caricare la capacità massima.');
+      }
+    });
   }
 
   onSubmit() {
-    // Salva in localStorage
-    localStorage.setItem(this.STORAGE_KEY, this.capacitaMassima.toString());
-    
-    // Emetti un evento personalizzato per notificare altri componenti
-    window.dispatchEvent(new CustomEvent('capacitaMassimaChanged', {
-      detail: { capacity: this.capacitaMassima }
-    }));
-    
-    // TODO: In produzione, salvare la capacità massima via API
-    alert(`Capacità massima impostata a ${this.capacitaMassima} persone. Impostazione salvata!`);
+    if (this.isSaving) return;
+    this.isSaving = true;
+    this.configurazioneService.saveCapacitaMassima(this.capacitaMassima).subscribe({
+      next: () => {
+        this.isSaving = false;
+        window.dispatchEvent(new CustomEvent('capacitaMassimaChanged', {
+          detail: { capacity: this.capacitaMassima }
+        }));
+        alert(`Capacità massima impostata a ${this.capacitaMassima} persone. Impostazione salvata!`);
+      },
+      error: () => {
+        this.isSaving = false;
+        alert('Errore durante il salvataggio. Riprova più tardi.');
+      }
+    });
   }
 }

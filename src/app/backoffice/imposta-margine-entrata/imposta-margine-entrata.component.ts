@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ConfigurazioneService } from '../../shared/services/configurazione.service';
 
 @Component({
   selector: 'app-imposta-margine-entrata',
@@ -12,25 +13,41 @@ import { RouterLink } from '@angular/router';
 })
 export class ImpostaMargineEntrataComponent implements OnInit {
   margineEntrata: number = 0;
-  private readonly STORAGE_KEY = 'margine_entrata_palestra';
+  isLoading = true;
+  isSaving = false;
+
+  constructor(private configurazioneService: ConfigurazioneService) {}
 
   ngOnInit() {
     this.loadMargineEntrata();
   }
 
   loadMargineEntrata() {
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-      this.margineEntrata = parseInt(saved, 10) || 0;
-    }
+    this.isLoading = true;
+    this.configurazioneService.getMargineEntrata().subscribe({
+      next: (value) => {
+        this.margineEntrata = value;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        alert('Impossibile caricare il margine entrata.');
+      }
+    });
   }
 
   onSubmit() {
-    // Salva in localStorage
-    localStorage.setItem(this.STORAGE_KEY, this.margineEntrata.toString());
-    
-    // TODO: In produzione, salvare il margine entrata via API
-    alert(`Margine entrata impostato a ${this.margineEntrata} minuti. Impostazione salvata!`);
+    if (this.isSaving) return;
+    this.isSaving = true;
+    this.configurazioneService.saveMargineEntrata(this.margineEntrata).subscribe({
+      next: () => {
+        this.isSaving = false;
+        alert(`Margine entrata impostato a ${this.margineEntrata} minuti. Impostazione salvata!`);
+      },
+      error: () => {
+        this.isSaving = false;
+        alert('Errore durante il salvataggio. Riprova più tardi.');
+      }
+    });
   }
 }
-

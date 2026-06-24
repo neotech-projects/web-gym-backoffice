@@ -6,6 +6,7 @@ import { BookingsService } from './bookings.service';
 import { Booking } from '../../shared/models/booking-data.interface';
 import { UsersService } from '../gestisci-utenti/users.service';
 import { User } from '../../shared/models/user-data.interface';
+import { ConfigurazioneService } from '../../shared/services/configurazione.service';
 
 declare var FullCalendar: any;
 declare var bootstrap: any;
@@ -21,10 +22,7 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
   calendar: any;
   bookings: Booking[] = [];
   allBookings: Booking[] = [];
-  MAX_CAPACITY: number = 5; // Valore di default, viene caricato da localStorage
-  private readonly STORAGE_KEY = 'capacita_massima_palestra';
-  private storageListener?: (e: StorageEvent) => void;
-  private visibilityListener?: () => void;
+  MAX_CAPACITY: number = 5;
   private capacityChangeListener?: (e: CustomEvent) => void;
   selectedDateForBooking: Date | null = null;
   currentViewingEvent: any = null;
@@ -36,12 +34,12 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
 
   constructor(
     private bookingsService: BookingsService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private configurazioneService: ConfigurazioneService
   ) {}
 
 
   ngOnInit() {
-    // Carica la capacità massima da localStorage
     this.loadMaxCapacity();
     // Carica utenti dall'API per il select crea prenotazione
     this.usersService.getUsers().subscribe({
@@ -54,28 +52,7 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
     });
     // Carica i dati delle prenotazioni dal microservizio
     this.loadBookings();
-    
-    // Listener per cambiamenti in localStorage (da altre tab/window)
-    this.storageListener = (e: StorageEvent) => {
-      if (e.key === this.STORAGE_KEY && e.newValue) {
-        const capacity = parseInt(e.newValue, 10);
-        if (capacity && capacity > 0 && capacity !== this.MAX_CAPACITY) {
-          this.MAX_CAPACITY = capacity;
-          this.updateCalendarEvents();
-        }
-      }
-    };
-    window.addEventListener('storage', this.storageListener);
-    
-    // Listener per quando la pagina diventa visibile (ricarica la capacità)
-    this.visibilityListener = () => {
-      if (!document.hidden) {
-        this.loadMaxCapacity();
-      }
-    };
-    document.addEventListener('visibilitychange', this.visibilityListener);
-    
-    // Listener per evento personalizzato quando la capacità cambia nella stessa tab
+
     this.capacityChangeListener = (e: CustomEvent) => {
       if (e.detail && e.detail.capacity) {
         const newCapacity = parseInt(e.detail.capacity, 10);
@@ -88,21 +65,20 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
     window.addEventListener('capacitaMassimaChanged', this.capacityChangeListener as EventListener);
   }
 
-  /**
-   * Carica la capacità massima da localStorage
-   */
   loadMaxCapacity() {
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-      const capacity = parseInt(saved, 10);
-      if (capacity && capacity > 0) {
-        this.MAX_CAPACITY = capacity;
-        // Se il calendario è già inizializzato, aggiorna la visualizzazione
-        if (this.calendar) {
-          this.updateCalendarEvents();
+    this.configurazioneService.getCapacitaMassima().subscribe({
+      next: (capacity) => {
+        if (capacity > 0) {
+          this.MAX_CAPACITY = capacity;
+          if (this.calendar) {
+            this.updateCalendarEvents();
+          }
         }
+      },
+      error: () => {
+        // Mantiene il default se l'API non risponde
       }
-    }
+    });
   }
 
   /**
@@ -160,13 +136,6 @@ export class GestisciPrenotazioniComponent implements OnInit, AfterViewInit, OnD
       this.calendar.destroy();
     }
     
-    // Rimuovi i listener
-    if (this.storageListener) {
-      window.removeEventListener('storage', this.storageListener);
-    }
-    if (this.visibilityListener) {
-      document.removeEventListener('visibilitychange', this.visibilityListener);
-    }
     if (this.capacityChangeListener) {
       window.removeEventListener('capacitaMassimaChanged', this.capacityChangeListener as EventListener);
     }
